@@ -1,0 +1,183 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// =======================
+// USER ROLES
+// =======================
+// ADMIN        → System level
+// OWNER        → Hotel owner
+// MANAGER      → Hotel manager
+// FRONT_DESK   → Reception
+// HOUSEKEEPING → Cleaning staff
+// STAFF        → Generic staff
+//
+enum Role {
+  ADMIN
+  OWNER
+  MANAGER
+  FRONT_DESK
+  HOUSEKEEPING
+  STAFF
+}
+
+//
+// =======================
+// USER MODEL
+// =======================
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  role          Role      @default(OWNER)
+
+  // OWNER RELATION (1 Hotel : 1 Owner)
+  ownedHotel    Hotel?    @relation("HotelOwner")
+
+  // STAFF RELATION (Many staff : 1 Hotel)
+  workingAtId   String?
+  workingAt     Hotel?    @relation("HotelStaff", fields: [workingAtId], references: [id])
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+//
+// =======================
+// HOTEL MODEL
+// =======================
+model Hotel {
+  id          String    @id @default(cuid())
+  name        String
+  mobile      String
+  hotelEmail  String
+
+  gstNumber   String?
+  address     String?
+  panNo       String?
+  aadharNo    String?
+  logo        String?
+
+  // OWNER RELATION (TEMPORARY OPTIONAL)
+  userId      String?   @unique
+  user        User?     @relation("HotelOwner", fields: [userId], references: [id])
+
+  // STAFF RELATION
+  staff       User[]    @relation("HotelStaff")
+
+  rooms       Room[]
+  bookings    Booking[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+//
+// =======================
+// ROOM MANAGEMENT
+// =======================
+enum RoomStatus {
+  AVAILABLE
+  BOOKED
+  DIRTY
+  MAINTENANCE
+}
+
+model Room {
+  id        String     @id @default(cuid())
+  number    String
+  type      String
+  price     Float
+  status    RoomStatus @default(AVAILABLE)
+
+  hotelId   String
+  hotel     Hotel      @relation(fields: [hotelId], references: [id])
+
+  bookings  Booking[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([hotelId, number])
+}
+
+//
+// =======================
+// BOOKINGS
+// =======================
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  guestName   String
+  guestMobile String
+  guestEmail  String?
+
+  idType      String
+  idNumber    String
+  idImage     String?
+
+  checkIn     DateTime
+  checkOut    DateTime
+
+  totalAmount Float
+  paidAmount  Float         @default(0)
+  dueAmount   Float         @default(0)
+
+  status      BookingStatus @default(CONFIRMED)
+
+  roomId      String
+  room        Room          @relation(fields: [roomId], references: [id])
+
+  hotelId     String
+  hotel       Hotel         @relation(fields: [hotelId], references: [id])
+
+  payments    Payment[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+//
+// =======================
+// PAYMENTS
+// =======================
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  BANK_TRANSFER
+}
+
+enum PaymentType {
+  ADVANCE
+  FULL_PAYMENT
+  DUE_CLEARANCE
+}
+
+model Payment {
+  id        String      @id @default(cuid())
+  amount    Float
+  mode      PaymentMode
+  type      PaymentType
+
+  bookingId String
+  booking   Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime    @default(now())
+}

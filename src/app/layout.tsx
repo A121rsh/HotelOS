@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+
+        {/* ✅ Cloudinary Upload Widget Script */}
+        <Script
+          src="https://upload-widget.cloudinary.com/global/all.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
