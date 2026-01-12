@@ -1,7 +1,9 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER USE KIYA
+import { redirect } from "next/navigation";
 import AddRoomModal from "@/components/AddRoomModal";
-import RoomActions from "@/components/RoomActions"; // ✅ Naya Component Import
+import RoomActions from "@/components/RoomActions"; 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input"; 
 import { 
@@ -11,21 +13,20 @@ import {
 
 export default async function RoomsPage() {
   const session = await auth();
+  if (!session) redirect("/login");
 
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { 
-        hotel: { 
-            include: { 
-                rooms: {
-                    orderBy: { number: 'asc' }
-                } 
-            } 
-        } 
-    }
+  // 1. ✅ NAYE LOGIC SE HOTEL NIKALA (Fixes "Unknown field hotel" error)
+  const hotel = await getHotelByUserId(session.user.id as string);
+
+  if (!hotel) {
+      return <div>Hotel not found or Access Denied.</div>;
+  }
+
+  // 2. ✅ AB HOTEL ID SE ROOMS NIKALE
+  const rooms = await db.room.findMany({
+      where: { hotelId: hotel.id },
+      orderBy: { number: 'asc' }
   });
-
-  const rooms = user?.hotel?.rooms || [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -42,6 +43,7 @@ export default async function RoomsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input placeholder="Search room number..." className="pl-9 bg-white" />
             </div>
+            {/* Modal ko hotel ID pass karne ki zaroorat nahi agar wo server action use kar raha hai */}
             <AddRoomModal />
         </div>
       </div>
@@ -91,7 +93,6 @@ export default async function RoomsPage() {
                     <span className="text-xs text-slate-400 font-medium"> /night</span>
                 </div>
 
-                {/* ✅ AB YE ERROR NAHI DEGA */}
                 <RoomActions room={room} />
             </div>
           </div>

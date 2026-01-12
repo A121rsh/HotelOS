@@ -1,5 +1,6 @@
-    import { auth } from "@/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER
 import NewBookingForm from "@/components/NewBookingForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -8,23 +9,21 @@ import { Button } from "@/components/ui/button";
 export default async function NewBookingPage() {
   const session = await auth();
   
-  // Hotel aur Rooms data fetch karo
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { 
-        hotel: { 
-            include: { 
-                // Sirf Available rooms hi dikhana chahiye booking ke liye
-                rooms: {
-                    where: { status: "AVAILABLE" },
-                    orderBy: { number: 'asc' }
-                } 
-            } 
-        } 
-    }
-  });
+  // 1. ✅ NAYE LOGIC SE HOTEL NIKALA
+  const hotel = await getHotelByUserId(session?.user?.id as string);
 
-  const rooms = user?.hotel?.rooms || [];
+  if (!hotel) {
+      return <div>Hotel not found or Access Denied.</div>;
+  }
+
+  // 2. ✅ HOTEL ID USE KARKE ROOMS NIKALE
+  const rooms = await db.room.findMany({
+      where: { 
+        hotelId: hotel.id,
+        status: "AVAILABLE" 
+      },
+      orderBy: { number: 'asc' }
+  });
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
@@ -41,7 +40,7 @@ export default async function NewBookingPage() {
         </div>
       </div>
 
-      {/* Form Component Load Karo */}
+      {/* Form Component */}
       <NewBookingForm rooms={rooms} />
     </div>
   );

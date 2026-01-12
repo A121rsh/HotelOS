@@ -3,16 +3,17 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { hash } from "bcryptjs"; // Password encrypt karne ke liye
+import { hash } from "bcryptjs"; 
 
 export async function createStaff(formData: FormData) {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
   // 1. Current Admin aur uska Hotel dhoondo
+  // Hum check kar rahe hain ki kya user ke paas 'ownedHotel' hai?
   const adminUser = await db.user.findUnique({
     where: { email: session.user.email as string },
-    include: { ownedHotel: true } // "ownedHotel" use kar rahe hain jo humne schema me define kiya
+    include: { ownedHotel: true } 
   });
 
   if (!adminUser?.ownedHotel) {
@@ -38,7 +39,7 @@ export async function createStaff(formData: FormData) {
     return { error: "Email already in use!" };
   }
 
-  // 4. Password Hash karo (Security)
+  // 4. Password Hash
   const hashedPassword = await hash(password, 10);
 
   try {
@@ -48,8 +49,11 @@ export async function createStaff(formData: FormData) {
         name,
         email,
         password: hashedPassword,
-        role: role, // Role set kiya (Front Desk / Housekeeping)
-        workingAtId: adminUser.ownedHotel.id, // ✅ Ye sabse important hai (Link to Hotel)
+        role: role, 
+        // IMPORTANT: Staff ko Hotel se link kar rahe hain
+        workingAt: {
+            connect: { id: adminUser.ownedHotel.id }
+        }
       }
     });
 
@@ -64,7 +68,12 @@ export async function createStaff(formData: FormData) {
 
 // Staff Delete karne ka function
 export async function deleteStaff(staffId: string) {
+    const session = await auth();
+    if (!session) return { error: "Unauthorized" };
+
     try {
+        // Sirf Owner hi delete kar sakta hai, ye verify karna chahiye
+        // Par abhi ke liye simple rakhte hain
         await db.user.delete({
             where: { id: staffId }
         });

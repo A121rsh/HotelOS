@@ -1,21 +1,23 @@
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER USE KIYA
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateHotelSettings } from "@/actions/settings";
 import { Building2, Save, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
   const session = await auth();
+  if (!session) redirect("/login");
   
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { hotel: true }
-  });
+  // 1. ✅ NAYE LOGIC SE HOTEL NIKALA
+  const hotel = await getHotelByUserId(session.user.id as string);
 
-  const hotel = user?.hotel;
+  if (!hotel) {
+      return <div>Hotel not found</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-10">
@@ -45,7 +47,7 @@ export default async function SettingsPage() {
                     <Label>Hotel Name</Label>
                     <div className="relative">
                         <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input name="name" defaultValue={hotel?.name} className="pl-9 font-medium" />
+                        <Input name="name" defaultValue={hotel.name} className="pl-9 font-medium" />
                     </div>
                 </div>
 
@@ -54,7 +56,7 @@ export default async function SettingsPage() {
                     <Label>Contact Email</Label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input name="email" defaultValue={hotel?.hotelEmail} className="pl-9" />
+                        <Input name="email" defaultValue={hotel.hotelEmail} className="pl-9" />
                     </div>
                 </div>
 
@@ -63,25 +65,25 @@ export default async function SettingsPage() {
                     <Label>Phone Number</Label>
                     <div className="relative">
                         <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input name="mobile" defaultValue={hotel?.mobile} className="pl-9" />
+                        <Input name="mobile" defaultValue={hotel.mobile} className="pl-9" />
                     </div>
                 </div>
 
-                {/* ✅ GST Number (Enabled) */}
+                {/* GST Number */}
                 <div className="space-y-2">
                     <Label>GSTIN Number</Label>
                     <div className="relative">
                         <FileText className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input name="gstNumber" defaultValue={hotel?.gstNumber || ""} placeholder="e.g. 24AAAAA0000A1Z5" className="pl-9 uppercase" />
+                        <Input name="gstNumber" defaultValue={hotel.gstNumber || ""} placeholder="e.g. 24AAAAA0000A1Z5" className="pl-9 uppercase" />
                     </div>
                 </div>
 
-                {/* ✅ Address (Enabled - Full Width) */}
+                {/* Address */}
                 <div className="col-span-1 md:col-span-2 space-y-2">
                     <Label>Full Address</Label>
                     <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input name="address" defaultValue={hotel?.address || ""} placeholder="Building No, Street Name, City, State - Zipcode" className="pl-9" />
+                        <Input name="address" defaultValue={hotel.address || ""} placeholder="Building No, Street Name, City, State - Zipcode" className="pl-9" />
                     </div>
                 </div>
             </div>

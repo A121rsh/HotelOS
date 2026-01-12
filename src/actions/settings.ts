@@ -11,31 +11,37 @@ export async function updateHotelSettings(formData: FormData) {
   const name = formData.get("name") as string;
   const mobile = formData.get("mobile") as string;
   const email = formData.get("email") as string;
-  const gstNumber = formData.get("gstNumber") as string; // ✅ Ab ye kaam karega
-  const address = formData.get("address") as string;     // ✅ Ye bhi
+  const gstNumber = formData.get("gstNumber") as string; 
+  const address = formData.get("address") as string; 
 
   try {
+    // ✅ Logic Update: Sirf Owner hi settings change kar sakta hai
     const user = await db.user.findUnique({
       where: { email: session.user.email as string },
-      include: { hotel: true }
+      include: { ownedHotel: true } // Sirf ownedHotel check karo
     });
 
-    if (!user?.hotel) return { error: "Hotel not found" };
+    // Agar user ke paas 'ownedHotel' nahi hai (matlab wo Staff hai ya koi aur), to Error do.
+    if (!user?.ownedHotel) {
+        return { error: "Permission Denied: Only the Hotel Owner can update settings." };
+    }
 
+    // Update Hotel
     await db.hotel.update({
-      where: { id: user.hotel.id },
+      where: { id: user.ownedHotel.id },
       data: {
         name,
         mobile,
         hotelEmail: email,
-        gstNumber, // ✅ Saving to DB
-        address,   // ✅ Saving to DB
+        gstNumber, 
+        address,   
       }
     });
 
     revalidatePath("/dashboard/settings");
-    revalidatePath("/dashboard");
+    revalidatePath("/dashboard"); // Header me naam update karne ke liye
     return { success: "Settings updated successfully!" };
+    
   } catch (error) {
     console.log(error);
     return { error: "Failed to update settings." };

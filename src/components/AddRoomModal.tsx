@@ -25,11 +25,10 @@ export default function AddRoomModal() {
     setIsLoading(false);
     
     if (res?.success) {
-        setIsOpen(false); // Sirf success hone par band hoga
-        // Optional: Toast message dikha sakte hain yahan
+        setIsOpen(false);
+        // Toast notification ka code yahan aa sakta hai future mein
     } else {
         alert(res?.error || "Error creating room");
-        // Error aane par form khula rahega taaki aap check kar sako
     }
   }
 
@@ -53,6 +52,7 @@ export default function AddRoomModal() {
                     <p className="text-xs text-slate-500 mt-1">Fill in the details to add to inventory.</p>
                 </div>
                 <button 
+                    type="button" // Important: Taaki ye form submit na kare
                     onClick={() => setIsOpen(false)} 
                     className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 hover:text-red-500 transition-colors text-slate-400"
                 >
@@ -94,14 +94,14 @@ export default function AddRoomModal() {
                     </div>
                 </div>
 
-                {/* Room Type (Select Dropdown Fixed) */}
+                {/* Room Type */}
                 <div className="space-y-2">
                     <Label className="text-slate-600 font-medium">Room Category</Label>
                     <div className="relative">
                         <Tag className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                         <select 
                             name="type" 
-                            defaultValue="" // ✅ FIXED: React way to handle default value
+                            defaultValue=""
                             className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 pl-10 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                             required
                         >
@@ -115,7 +115,7 @@ export default function AddRoomModal() {
                     </div>
                 </div>
 
-                {/* Footer Buttons (Grid Layout Fixed) */}
+                {/* Footer Buttons */}
                 <div className="pt-4 grid grid-cols-2 gap-3 border-t border-slate-50 mt-4">
                     <Button 
                         type="button" 

@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Phone, Calendar } from "lucide-react";
-import BookingActions from "@/components/BookingActions"; // ✅ Naya Component Import kiya
+import BookingActions from "@/components/BookingActions";
 
-// --- Custom Icons ---
+// --- Custom Icons (Same as before) ---
 const Icons = {
   Aadhar: () => (
     <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 inline-block mr-1">
@@ -31,21 +32,19 @@ const Icons = {
 export default async function BookingsPage() {
   const session = await auth();
   
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { 
-        hotel: { 
-            include: { 
-                bookings: {
-                    orderBy: { createdAt: 'desc' },
-                    include: { room: true }
-                }
-            } 
-        } 
-    }
-  });
+  // 1. ✅ HOTEL NIKALA
+  const hotel = await getHotelByUserId(session?.user?.id as string);
+  
+  if (!hotel) {
+      return <div>Hotel not found or Access Denied.</div>;
+  }
 
-  const bookings = user?.hotel?.bookings || [];
+  // 2. ✅ DIRECT BOOKINGS TABLE QUERY (Hotel ID ke basis par)
+  const bookings = await db.booking.findMany({
+      where: { hotelId: hotel.id },
+      include: { room: true },
+      orderBy: { createdAt: 'desc' }
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -176,7 +175,7 @@ export default async function BookingsPage() {
                                     </div>
                                 </td>
 
-                                {/* Actions Column (Ab Client Component se load hoga) */}
+                                {/* Actions Column */}
                                 <td className="px-6 py-4 text-right">
                                     <BookingActions 
                                         bookingId={booking.id} 

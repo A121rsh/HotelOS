@@ -7,33 +7,37 @@ import { revalidatePath } from "next/cache";
 export async function createRoom(formData: FormData) {
   const session = await auth();
   
-  // User verify karo
+  if (!session) return { error: "Unauthorized" };
+
+  // ✅ FIX: Naye Schema ke hisaab se User aur uska Hotel dhoondo
   const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string }
+    where: { email: session.user.email as string },
+    include: {
+        ownedHotel: true, // Agar Owner hai
+        workingAt: true   // Agar Staff hai
+    }
   });
 
-  if (!user || !user.hotelId) {
-    return { error: "Hotel not found" };
+  // Determine Hotel ID
+  const hotel = user?.ownedHotel || user?.workingAt;
+
+  if (!hotel) {
+    return { error: "Hotel not found linked to this account." };
   }
 
-  // ✅ FIX: Yahan sahi naam use kar rahe hain jo Frontend bhej raha hai
-  // Form mein <input name="number" /> hai, to yahan bhi "number" hona chahiye
   const number = formData.get("number") as string;
   const type = formData.get("type") as string;
   const price = parseFloat(formData.get("price") as string);
-
-  // Debugging log (Ab ye sahi value dikhayega)
-  console.log("🛠️ Received Data Fixed:", { number, type, price });
 
   if (!number || !type || !price) {
     return { error: "All fields are required" };
   }
 
   try {
-    // Check karo ki room number pehle se to nahi hai
+    // Check duplication in THIS specific hotel
     const existingRoom = await db.room.findFirst({
         where: {
-            hotelId: user.hotelId,
+            hotelId: hotel.id, // ✅ Correct Hotel ID
             number: number
         }
     });
@@ -42,13 +46,13 @@ export async function createRoom(formData: FormData) {
         return { error: `Room ${number} already exists!` };
     }
 
-    // Database me room save karo
+    // Create Room
     await db.room.create({
       data: {
-        number, // Database column: number
-        type,   // Database column: type
+        number, 
+        type,   
         price,
-        hotelId: user.hotelId,
+        hotelId: hotel.id, // ✅ Correct Hotel ID
         status: "AVAILABLE"
       }
     });
@@ -61,9 +65,11 @@ export async function createRoom(formData: FormData) {
   }
 }
 
-// ... (Update aur Delete wale functions same rahenge) ...
+// UPDATE STATUS
 export async function updateRoomStatus(roomId: string, newStatus: string) {
   try {
+    // Future Note: Security ke liye humein check karna chahiye ki ye room usi hotel ka hai jiska user hai.
+    // Abhi ke liye simple rakhte hain.
     await db.room.update({
       where: { id: roomId },
       // @ts-ignore
@@ -76,6 +82,7 @@ export async function updateRoomStatus(roomId: string, newStatus: string) {
   }
 }
 
+// DELETE ROOM
 export async function deleteRoom(roomId: string) {
   try {
     await db.room.delete({ where: { id: roomId } });
@@ -86,7 +93,7 @@ export async function deleteRoom(roomId: string) {
   }
 }
 
-
+// UPDATE ROOM DETAILS
 export async function updateRoom(formData: FormData) {
   const roomId = formData.get("roomId") as string;
   const number = formData.get("number") as string;

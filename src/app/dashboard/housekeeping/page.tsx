@@ -1,26 +1,24 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER
 import HousekeepingCard from "@/components/HousekeepingCard";
 import { Sparkles, AlertCircle, CheckCircle } from "lucide-react";
 
 export default async function HousekeepingPage() {
   const session = await auth();
   
-  // Data Fetching
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { 
-        hotel: { 
-            include: { 
-                rooms: {
-                    orderBy: { number: 'asc' } // Room number wise sort
-                } 
-            } 
-        } 
-    }
-  });
+  // 1. ✅ HOTEL NIKALA NAYE LOGIC SE
+  const hotel = await getHotelByUserId(session?.user?.id as string);
+  
+  if (!hotel) {
+      return <div>Hotel not found or Access Denied.</div>;
+  }
 
-  const rooms = user?.hotel?.rooms || [];
+  // 2. ✅ HOTEL ID SE ROOMS FETCH KIYE
+  const rooms = await db.room.findMany({
+      where: { hotelId: hotel.id },
+      orderBy: { number: 'asc' }
+  });
 
   // Stats Calculation
   const dirtyRooms = rooms.filter(r => r.status === 'DIRTY');
@@ -40,7 +38,7 @@ export default async function HousekeepingPage() {
         </div>
       </div>
 
-      {/* 2. STATS OVERVIEW (Dashboard style) */}
+      {/* 2. STATS OVERVIEW */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Dirty Card */}
         <div className="bg-orange-50 border border-orange-100 p-6 rounded-xl flex items-center justify-between">
@@ -78,7 +76,7 @@ export default async function HousekeepingPage() {
 
       <hr className="border-slate-100" />
 
-      {/* 3. PRIORITY SECTION: DIRTY ROOMS (Sabse upar dikhega) */}
+      {/* 3. PRIORITY SECTION: DIRTY ROOMS */}
       {dirtyRooms.length > 0 && (
         <div className="space-y-4">
              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -92,7 +90,7 @@ export default async function HousekeepingPage() {
         </div>
       )}
 
-      {/* 4. OTHER ROOMS (Ready & Others) */}
+      {/* 4. OTHER ROOMS */}
       <div className="space-y-4 pt-4">
         <h2 className="text-lg font-semibold text-slate-500">All Other Rooms</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-80 hover:opacity-100 transition-opacity">
@@ -104,7 +102,7 @@ export default async function HousekeepingPage() {
             {maintenanceRooms.map(room => (
                 <HousekeepingCard key={room.id} room={room} />
             ))}
-            {/* Booked Rooms (Inko Housekeeping chhed nahi sakta usually, but dikhana zaroori hai) */}
+            {/* Booked Rooms (Display Only) */}
             {rooms.filter(r => r.status === 'BOOKED').map(room => (
                  <div key={room.id} className="border-2 border-blue-100 bg-blue-50/30 rounded-xl p-5 flex flex-col justify-between">
                     <div className="flex justify-between items-start">

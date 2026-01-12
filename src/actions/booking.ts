@@ -5,48 +5,52 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 // ================================
-// 1. CREATE BOOKING (New Logic with Payment & KYC)
+// 1. CREATE BOOKING
 // ================================
 export async function createBooking(formData: FormData) {
   const session = await auth();
   
-  // User verify
+  // 1. ✅ USER AUR HOTEL KO SAHI SE FIND KIYA
   const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string }
+    where: { email: session?.user?.email as string },
+    include: {
+        ownedHotel: true,
+        workingAt: true
+    }
   });
 
-  if (!user || !user.hotelId) {
-    return { error: "Unauthorized: User or Hotel not found" };
+  const hotel = user?.ownedHotel || user?.workingAt;
+
+  if (!hotel) {
+    return { error: "Unauthorized: No hotel linked to this account." };
   }
 
-  // 1. Form Data nikalo
+  // 1. Form Data processing
   const guestName = formData.get("guestName") as string;
   const guestMobile = formData.get("guestMobile") as string;
   const guestEmail = formData.get("guestEmail") as string;
   
   const idType = formData.get("idType") as string;
   const idNumber = formData.get("idNumber") as string;
-  const idImage = formData.get("idImage") as string; // Cloudinary URL
+  const idImage = formData.get("idImage") as string;
   
   const roomId = formData.get("roomId") as string;
   const checkIn = new Date(formData.get("checkIn") as string);
   const checkOut = new Date(formData.get("checkOut") as string);
   
   const totalAmount = parseFloat(formData.get("totalAmount") as string);
-  
-  // Payment Fields
   const advanceAmount = parseFloat(formData.get("advanceAmount") as string) || 0;
   const paymentMode = formData.get("paymentMode") as string; 
 
-  // 2. Validation
   if (!guestName || !guestMobile || !roomId || !checkIn || !checkOut) {
     return { error: "Please fill all required fields" };
   }
 
-  // 3. Availability Check
+  // 3. Availability Check (Specific Hotel ke liye)
   const existingBooking = await db.booking.findFirst({
     where: {
       roomId,
+      hotelId: hotel.id, // ✅ Hotel ID Added
       OR: [
         { checkIn: { lte: checkOut }, checkOut: { gte: checkIn } }
       ],
@@ -59,17 +63,17 @@ export async function createBooking(formData: FormData) {
   }
 
   try {
-    // 4. Booking Create karo
+    // 4. Create Booking
     await db.booking.create({
       data: {
-        hotelId: user.hotelId,
+        hotelId: hotel.id, // ✅ Correct Hotel ID
         roomId,
         guestName,
         guestMobile,
         guestEmail,
         idType,
         idNumber,
-        idImage, // Cloudinary URL
+        idImage,
         checkIn,
         checkOut,
         totalAmount,
@@ -77,7 +81,6 @@ export async function createBooking(formData: FormData) {
         dueAmount: totalAmount - advanceAmount,
         status: "CONFIRMED",
         
-        // Payment History me Entry
         payments: advanceAmount > 0 ? {
             create: {
                 amount: advanceAmount,
@@ -88,7 +91,7 @@ export async function createBooking(formData: FormData) {
       }
     });
 
-    // 5. Room ko 'Booked' mark karo (Agar aaj check-in hai)
+    // 5. Room Status Update (Agar aaj hi check-in hai)
     const today = new Date();
     today.setHours(0,0,0,0);
     if (checkIn <= today && checkOut > today) {
@@ -108,13 +111,11 @@ export async function createBooking(formData: FormData) {
 }
 
 // ================================
-// 2. DELETE BOOKING (Restored)
+// 2. DELETE BOOKING
 // ================================
 export async function deleteBooking(bookingId: string) {
   const session = await auth();
-  if (!session?.user) {
-    return { error: "Unauthorized" };
-  }
+  if (!session?.user) return { error: "Unauthorized" };
 
   try {
     await db.booking.delete({
@@ -129,22 +130,42 @@ export async function deleteBooking(bookingId: string) {
 }
 
 // ================================
-// 3. UPDATE BOOKING STATUS (Restored)
+// 3. UPDATE BOOKING STATUS
 // ================================
 export async function updateBookingStatus(
   bookingId: string,
   newStatus: "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED"
 ) {
   const session = await auth();
-  if (!session?.user) {
-    return { error: "Unauthorized" };
-  }
+  if (!session?.user) return { error: "Unauthorized" };
 
   try {
-    await db.booking.update({
+    // 1. Status Update
+    const booking = await db.booking.update({
       where: { id: bookingId },
       data: { status: newStatus },
+      include: { room: true }
     });
+
+    // 2. Room Status Sync logic
+    // Agar Check-out hua -> Room Dirty ho jayega
+    // Agar Cancel hua -> Room Available ho jayega
+    if (newStatus === "CHECKED_OUT") {
+        await db.room.update({
+            where: { id: booking.roomId },
+            data: { status: "DIRTY" }
+        });
+    } else if (newStatus === "CANCELLED") {
+        await db.room.update({
+            where: { id: booking.roomId },
+            data: { status: "AVAILABLE" }
+        });
+    } else if (newStatus === "CHECKED_IN") {
+        await db.room.update({
+            where: { id: booking.roomId },
+            data: { status: "BOOKED" }
+        });
+    }
 
     revalidatePath("/dashboard/bookings");
     return { success: "Booking status updated" };

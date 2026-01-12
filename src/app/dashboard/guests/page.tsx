@@ -1,32 +1,30 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER IMPORT KIYA
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Ensure you have Shadcn Avatar or remove if not
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, Search, User } from "lucide-react";
+import { Phone, Mail, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export default async function GuestsPage() {
   const session = await auth();
-  
-  // 1. Saari Bookings fetch karo
-  const user = await db.user.findUnique({
-    where: { email: session?.user?.email as string },
-    include: { 
-        hotel: { 
-            include: { 
-                bookings: {
-                    orderBy: { createdAt: 'desc' }
-                }
-            } 
-        } 
-    }
+  if (!session) redirect("/login");
+
+  // 1. ✅ NAYE LOGIC SE HOTEL NIKALA
+  const hotel = await getHotelByUserId(session.user.id as string);
+
+  if (!hotel) {
+      return <div>Hotel not found</div>;
+  }
+
+  // 2. ✅ HOTEL ID SE DIRECT BOOKINGS NIKALI
+  const allBookings = await db.booking.findMany({
+      where: { hotelId: hotel.id },
+      orderBy: { createdAt: 'desc' }
   });
 
-  const allBookings = user?.hotel?.bookings || [];
-
-  // 2. Logic: Bookings ko "Unique Guests" me convert karna (By Mobile Number)
-  // Ye thoda magic code hai jo repeat guests ko merge kar dega
+  // 3. Logic: Bookings ko "Unique Guests" me convert karna (Same logic as yours)
   const uniqueGuestsMap = new Map();
 
   allBookings.forEach((booking) => {
@@ -43,14 +41,13 @@ export default async function GuestsPage() {
             visits: 1,
             totalSpent: booking.totalAmount,
             lastVisit: booking.checkIn,
-            bookings: [booking] // History save kar rahe hain
+            bookings: [booking]
         });
     } else {
-        // Agar repeat guest hai (Same Mobile)
+        // Agar repeat guest hai
         const guest = uniqueGuestsMap.get(mobile);
         guest.visits += 1;
         guest.totalSpent += booking.totalAmount;
-        // Check agar ye visit nayi hai to date update karo
         if (new Date(booking.checkIn) > new Date(guest.lastVisit)) {
             guest.lastVisit = booking.checkIn;
         }
@@ -58,7 +55,7 @@ export default async function GuestsPage() {
     }
   });
 
-  // Map ko Array me badal lo taaki map kar sakein
+  // Map ko Array me badal lo
   const guests = Array.from(uniqueGuestsMap.values());
 
   return (
@@ -73,7 +70,7 @@ export default async function GuestsPage() {
             </p>
         </div>
         
-        {/* Search Bar (Visual Only for now) */}
+        {/* Search Bar */}
         <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <Input placeholder="Search guests..." className="pl-9 bg-white" />
@@ -137,8 +134,7 @@ export default async function GuestsPage() {
         ))}
 
         {guests.length === 0 && (
-            <div className="col-span-full text-center py-12 text-slate-400">
-                <User className="h-12 w-12 mx-auto mb-2 opacity-20" />
+            <div className="col-span-full text-center py-12 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
                 <p>No guests found yet.</p>
             </div>
         )}
