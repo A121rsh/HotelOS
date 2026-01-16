@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { db } from "@/lib/db"
-import { compare } from "bcryptjs" // ✅ Ye zaroori hai (Registration se match karne ke liye)
+import { compare } from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -30,11 +30,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("User not found");
         }
 
-        // 4. Password Compare karo (Bcryptjs use karke)
+        // 4. Password Compare karo
         const isMatch = await compare(password, user.password);
 
         if (!isMatch) {
-          throw new Error("Incorrect Password"); // <-- Ye wahi error hai jo aapko aa raha tha
+          throw new Error("Incorrect Password");
         }
 
         // 5. Sab sahi hai, User return karo
@@ -43,19 +43,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   pages: {
-    signIn: '/login', // Custom login page
+    signIn: '/login',
   },
   callbacks: {
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+    // ✅ JWT Callback: Jab token banega, tab database se role utha kar token me daalenge
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id; // User ID
+        token.role = user.role; // ✅ User Role (OWNER / FRONT_DESK etc.)
       }
-      // Role bhi session me daal dete hain (Future use ke liye)
-      // session.user.role = token.role; 
-      return session;
-    },
-    async jwt({ token }) {
       return token;
+    },
+    // ✅ Session Callback: Frontend ko token se role pass karenge
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+        session.user.role = token.role as string; // ✅ Frontend ab role padh sakega
+      }
+      return session;
     }
   }
 })
