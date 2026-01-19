@@ -13,20 +13,10 @@ datasource db {
 // =======================
 // USER ROLES
 // =======================
-// ADMIN        → System level
-// OWNER        → Hotel owner
-// MANAGER      → Hotel manager
-// FRONT_DESK   → Reception
-// HOUSEKEEPING → Cleaning staff
-// STAFF        → Generic staff
-//
 enum Role {
   ADMIN
   OWNER
   MANAGER
-  FRONT_DESK
-  HOUSEKEEPING
-  STAFF
 }
 
 //
@@ -46,6 +36,12 @@ model User {
   // STAFF RELATION (Many staff : 1 Hotel)
   workingAtId   String?
   workingAt     Hotel?    @relation("HotelStaff", fields: [workingAtId], references: [id])
+
+  // AUDIT TRAIL
+  createdBookings Booking[] @relation("BookingCreator")
+
+  // ✅ NEW: Tasks Assigned to this User
+  tasks         Task[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -67,7 +63,7 @@ model Hotel {
   aadharNo    String?
   logo        String?
 
-  // OWNER RELATION (TEMPORARY OPTIONAL)
+  // OWNER RELATION
   userId      String?   @unique
   user        User?     @relation("HotelOwner", fields: [userId], references: [id])
 
@@ -76,9 +72,33 @@ model Hotel {
 
   rooms       Room[]
   bookings    Booking[]
+  
+  // ✅ NEW: Hotel Tasks
+  tasks       Task[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+//
+// =======================
+// TASK MANAGEMENT (✅ NEW)
+// =======================
+model Task {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  status       String   @default("PENDING") // PENDING, DONE
+  
+  // Relation: Kis Hotel ka task hai
+  hotelId      String
+  hotel        Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  // Relation: Kis Staff ko assign kiya hai
+  assignedToId String
+  assignedTo   User     @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
 }
 
 //
@@ -141,11 +161,16 @@ model Booking {
 
   status      BookingStatus @default(CONFIRMED)
 
+  // RELATIONS
   roomId      String
   room        Room          @relation(fields: [roomId], references: [id])
 
   hotelId     String
   hotel       Hotel         @relation(fields: [hotelId], references: [id])
+   
+  // BOOKED BY
+  createdById String?       
+  createdBy   User?         @relation("BookingCreator", fields: [createdById], references: [id])
 
   payments    Payment[]
 

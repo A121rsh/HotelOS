@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 export async function createBooking(formData: FormData) {
   const session = await auth();
   
-  // 1. ✅ USER AUR HOTEL KO SAHI SE FIND KIYA
+  // 1. User aur Hotel find karo
   const user = await db.user.findUnique({
     where: { email: session?.user?.email as string },
     include: {
@@ -25,7 +25,7 @@ export async function createBooking(formData: FormData) {
     return { error: "Unauthorized: No hotel linked to this account." };
   }
 
-  // 1. Form Data processing
+  // 2. Form Data processing
   const guestName = formData.get("guestName") as string;
   const guestMobile = formData.get("guestMobile") as string;
   const guestEmail = formData.get("guestEmail") as string;
@@ -46,11 +46,11 @@ export async function createBooking(formData: FormData) {
     return { error: "Please fill all required fields" };
   }
 
-  // 3. Availability Check (Specific Hotel ke liye)
+  // 3. Availability Check
   const existingBooking = await db.booking.findFirst({
     where: {
       roomId,
-      hotelId: hotel.id, // ✅ Hotel ID Added
+      hotelId: hotel.id,
       OR: [
         { checkIn: { lte: checkOut }, checkOut: { gte: checkIn } }
       ],
@@ -66,7 +66,7 @@ export async function createBooking(formData: FormData) {
     // 4. Create Booking
     await db.booking.create({
       data: {
-        hotelId: hotel.id, // ✅ Correct Hotel ID
+        hotelId: hotel.id,
         roomId,
         guestName,
         guestMobile,
@@ -80,6 +80,9 @@ export async function createBooking(formData: FormData) {
         paidAmount: advanceAmount,
         dueAmount: totalAmount - advanceAmount,
         status: "CONFIRMED",
+        
+        // ✅ NEW: AUDIT TRAIL (Kisne booking banayi)
+        createdById: user.id, 
         
         payments: advanceAmount > 0 ? {
             create: {
@@ -148,8 +151,6 @@ export async function updateBookingStatus(
     });
 
     // 2. Room Status Sync logic
-    // Agar Check-out hua -> Room Dirty ho jayega
-    // Agar Cancel hua -> Room Available ho jayega
     if (newStatus === "CHECKED_OUT") {
         await db.room.update({
             where: { id: booking.roomId },

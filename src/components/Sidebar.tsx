@@ -11,11 +11,12 @@ import {
   Sparkles, 
   Settings, 
   Shield,
-  LogOut
+  LogOut,
+  CheckSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react"; // Logout ke liye
-import { useSession } from "next-auth/react"; // ✅ Role check karne ke liye
+import { signOut } from "next-auth/react"; 
+import { useSession } from "next-auth/react"; 
 
 interface SidebarProps {
     hotelName?: string;
@@ -23,56 +24,65 @@ interface SidebarProps {
 
 export default function Sidebar({ hotelName }: SidebarProps) {
   const pathname = usePathname();
-  const { data: session } = useSession(); // Session se role nikalo
+  const { data: session } = useSession(); 
   const role = session?.user?.role;
 
-  // 1. Saare Routes Define karo
+  // ✅ SIMPLIFIED ROUTES
   const routes = [
     {
       label: "Dashboard",
       icon: LayoutDashboard,
       href: "/dashboard",
-      roles: ["OWNER", "FRONT_DESK", "HOUSEKEEPING"] // Sabke liye
+      roles: ["OWNER", "MANAGER"] 
     },
     {
       label: "Bookings",
       icon: CalendarDays,
       href: "/dashboard/bookings",
-      roles: ["OWNER", "FRONT_DESK"] // Housekeeping ko nahi dikhega
+      roles: ["OWNER", "MANAGER"]
     },
     {
       label: "Rooms",
       icon: BedDouble,
       href: "/dashboard/rooms",
-      roles: ["OWNER", "FRONT_DESK"]
+      roles: ["OWNER", "MANAGER"]
     },
     {
       label: "Guests",
       icon: Users,
       href: "/dashboard/guests",
-      roles: ["OWNER", "FRONT_DESK"]
+      roles: ["OWNER", "MANAGER"]
     },
     {
       label: "Housekeeping",
       icon: Sparkles,
       href: "/dashboard/housekeeping",
-      roles: ["OWNER", "FRONT_DESK", "HOUSEKEEPING"]
+      roles: ["OWNER", "MANAGER"]
     },
+    // Staff aur Settings sirf OWNER dekhega
     {
       label: "Staff",
       icon: Shield,
       href: "/dashboard/staff",
-      roles: ["OWNER"] // ✅ Sirf Owner ke liye
+      roles: ["OWNER"] 
     },
     {
       label: "Settings",
       icon: Settings,
       href: "/dashboard/settings",
-      roles: ["OWNER"] // ✅ Sirf Owner ke liye
+      roles: ["OWNER"] 
     },
+{
+      label: "Tasks",
+      icon: CheckSquare, // lucide-react se import karein
+      href: "/dashboard/tasks",
+      roles: ["OWNER", "MANAGER"] // ✅ Dono dekh sakte hain
+    },
+    
   ];
 
-  // 2. Filter Routes based on Role
+  
+
   const filteredRoutes = routes.filter(route => 
     role ? route.roles.includes(role) : false
   );
@@ -104,7 +114,6 @@ export default function Sidebar({ hotelName }: SidebarProps) {
         </div>
       </div>
       
-      {/* Footer / Logout */}
       <div className="px-3 py-2">
          <Button 
             onClick={() => signOut()} 

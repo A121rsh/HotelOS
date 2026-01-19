@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createStaff } from "@/actions/staff";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, ShieldCheck } from "lucide-react";
 
 export default function AddStaffModal() {
   const [open, setOpen] = useState(false);
@@ -27,7 +27,6 @@ export default function AddStaffModal() {
         alert(res.error);
     } else {
         setOpen(false);
-        // Page apne aap refresh ho jayega due to server action
     }
   }
 
@@ -35,13 +34,13 @@ export default function AddStaffModal() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-600 hover:bg-blue-700">
-            <UserPlus className="mr-2 h-4 w-4"/> Add New Employee
+            <UserPlus className="mr-2 h-4 w-4"/> Add New Manager
         </Button>
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Staff Member</DialogTitle>
+          <DialogTitle>Add Hotel Manager</DialogTitle>
         </DialogHeader>
 
         <form action={handleSubmit} className="space-y-4 py-4">
@@ -53,7 +52,7 @@ export default function AddStaffModal() {
 
             <div className="space-y-2">
                 <Label>Email Address (For Login)</Label>
-                <Input name="email" type="email" placeholder="staff@hotel.com" required />
+                <Input name="email" type="email" placeholder="manager@hotel.com" required />
             </div>
 
             <div className="space-y-2">
@@ -61,20 +60,19 @@ export default function AddStaffModal() {
                 <Input name="password" type="password" placeholder="******" required />
             </div>
 
+            {/* ✅ ROLE SELECTION REMOVED: Auto-set to Manager */}
             <div className="space-y-2">
-                <Label>Role / Designation</Label>
-                <select 
-                    name="role" 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    required
-                >
-                    <option value="FRONT_DESK">Receptionist (Front Desk)</option>
-                    <option value="HOUSEKEEPING">Housekeeping Staff</option>
-                </select>
+                <Label>Role</Label>
+                <div className="flex items-center gap-2 p-2 bg-slate-100 rounded border border-slate-200 text-slate-600">
+                    <ShieldCheck className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium">Manager (Full Access)</span>
+                    {/* Hidden input taaki server ko pata chale ye Manager hai */}
+                    <input type="hidden" name="role" value="MANAGER" />
+                </div>
             </div>
 
             <Button type="submit" className="w-full bg-slate-900" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : "Create Account"}
+                {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : "Create Manager Account"}
             </Button>
         </form>
       </DialogContent>

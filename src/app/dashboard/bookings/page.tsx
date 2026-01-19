@@ -1,12 +1,12 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { getHotelByUserId } from "@/lib/hotel-helper"; // ✅ HELPER
+import { getHotelByUserId } from "@/lib/hotel-helper";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Phone, Calendar } from "lucide-react";
 import BookingActions from "@/components/BookingActions";
 
-// --- Custom Icons (Same as before) ---
+// --- Custom Icons ---
 const Icons = {
   Aadhar: () => (
     <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 inline-block mr-1">
@@ -32,17 +32,18 @@ const Icons = {
 export default async function BookingsPage() {
   const session = await auth();
   
-  // 1. ✅ HOTEL NIKALA
   const hotel = await getHotelByUserId(session?.user?.id as string);
   
   if (!hotel) {
       return <div>Hotel not found or Access Denied.</div>;
   }
 
-  // 2. ✅ DIRECT BOOKINGS TABLE QUERY (Hotel ID ke basis par)
   const bookings = await db.booking.findMany({
       where: { hotelId: hotel.id },
-      include: { room: true },
+      include: { 
+        room: true,
+        createdBy: true
+      },
       orderBy: { createdAt: 'desc' }
   });
 
@@ -91,6 +92,7 @@ export default async function BookingsPage() {
                     <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider text-xs">
                         <tr>
                             <th className="px-6 py-4">Guest</th>
+                            <th className="px-6 py-4">Booked By</th>
                             <th className="px-6 py-4">Room & Stay</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Payment</th>
@@ -121,6 +123,23 @@ export default async function BookingsPage() {
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
+                                </td>
+
+                                {/* Booked By Column */}
+                                <td className="px-6 py-4">
+                                    <div className="text-xs font-medium">
+                                        {booking.createdBy ? (
+                                            <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
+                                                {booking.createdBy.name} 
+                                                {booking.createdBy.email === session?.user?.email && " (You)"}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-400 italic">--</span>
+                                        )}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 mt-1">
+                                        {new Date(booking.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                     </div>
                                 </td>
 
