@@ -1,57 +1,52 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 export async function registerHotel(formData: FormData) {
   const hotelName = formData.get("hotelName") as string;
+  const ownerName = formData.get("ownerName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const mobile = formData.get("mobile") as string;
-  const ownerName = formData.get("ownerName") as string;
   const logo = formData.get("logo") as string;
 
-  // ❌ VALIDATION REMOVED (Temporary)
-  // if (!hotelName || !email || !password || !mobile || !ownerName) {
-  //   return { error: "All fields are required" };
-  // }
-
-  // 1. Check if User Already Exists
-  const existingUser = await db.user.findUnique({
-    where: { email }
-  });
-
-  if (existingUser) {
-    return { error: "Email already registered!" };
+  if (!hotelName || !ownerName || !email || !password || !mobile) {
+    return { error: "Please fill all required fields." };
   }
 
-  const hashedPassword = await hash(password, 10);
+  const existingUser = await db.user.findUnique({ where: { email } });
+  if (existingUser) return { error: "Email already registered." };
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    // ✅ CORRECT SCHEMA LOGIC (User + Hotel ek saath)
-    await db.user.create({
-      data: {
-        name: ownerName,
-        email: email,
-        password: hashedPassword,
-        role: "OWNER",
-        
-        // Hotel yahan create hoga aur User se link ho jayega
-        ownedHotel: {
-          create: {
-            name: hotelName,
-            mobile: mobile,
-            hotelEmail: email,
-            logo: logo || "",
-          }
-        }
-      }
+    await db.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+            data: {
+                name: ownerName,
+                email: email,
+                password: hashedPassword,
+                role: "OWNER"
+            }
+        });
+
+        await tx.hotel.create({
+            data: {
+                name: hotelName,
+                mobile: mobile,
+                hotelEmail: email,
+                userId: newUser.id,
+                logo: logo || null,
+                isActive: true
+            }
+        });
     });
 
-    return { success: "Hotel registered successfully!" };
+    return { success: true };
 
   } catch (error) {
     console.error("Registration Error:", error);
-    return { error: "Something went wrong during registration." };
+    return { error: "Something went wrong." };
   }
 }

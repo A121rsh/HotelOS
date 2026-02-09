@@ -2,18 +2,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doLogin } from "@/actions/login"; 
+import { doLogin } from "@/actions/login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { 
-  Loader2, 
-  Hotel, 
-  Lock, 
-  Mail, 
-  Eye, 
+import {
+  Loader2,
+  Hotel,
+  Lock,
+  Mail,
+  Eye,
   EyeOff,
   Shield,
   KeyRound
@@ -27,19 +27,23 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   // 🛑 Redirect if already authenticated
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard");
+    if (status === "authenticated" && session?.user) {
+      if (session.user.role === "ADMIN") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
     setError("");
-    
+
     try {
       const res = await doLogin(formData);
       if (res?.error) {
@@ -98,7 +102,7 @@ export default function LoginPage() {
 
         <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600"></div>
-          
+
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-blue-600 dark:text-blue-400" />

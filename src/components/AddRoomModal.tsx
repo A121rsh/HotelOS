@@ -5,6 +5,7 @@ import { createRoom } from "@/actions/room";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ImageUpload from "@/components/ImageUpload"; // ✅ Imported
 import { 
   Plus, 
   X, 
@@ -18,15 +19,22 @@ import {
 export default function AddRoomModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState(""); // ✅ Image State
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
+
+    // ✅ Image URL append karna zaroori hai
+    if (imageUrl) {
+        formData.append("image", imageUrl);
+    }
+
     const res = await createRoom(formData);
     setIsLoading(false);
     
     if (res?.success) {
         setIsOpen(false);
-        // Toast notification ka code yahan aa sakta hai future mein
+        setImageUrl(""); // Reset image
     } else {
         alert(res?.error || "Error creating room");
     }
@@ -52,7 +60,7 @@ export default function AddRoomModal() {
                     <p className="text-xs text-slate-500 mt-1">Fill in the details to add to inventory.</p>
                 </div>
                 <button 
-                    type="button" // Important: Taaki ye form submit na kare
+                    type="button" 
                     onClick={() => setIsOpen(false)} 
                     className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 hover:text-red-500 transition-colors text-slate-400"
                 >
@@ -63,6 +71,18 @@ export default function AddRoomModal() {
             {/* Form */}
             <form action={handleSubmit} className="p-6 space-y-6">
                 
+                {/* ✅ Image Upload Section */}
+                <div className="space-y-2">
+                    <Label className="text-slate-600 font-medium">Room Image</Label>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
+                        <ImageUpload 
+                            value={imageUrl ? [imageUrl] : []} 
+                            onChange={(url) => setImageUrl(url)}
+                            onRemove={() => setImageUrl("")}
+                        />
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-6">
                     {/* Room Number */}
                     <div className="space-y-2">

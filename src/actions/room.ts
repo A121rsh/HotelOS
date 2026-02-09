@@ -6,15 +6,14 @@ import { revalidatePath } from "next/cache";
 
 export async function createRoom(formData: FormData) {
   const session = await auth();
-  
+
   if (!session) return { error: "Unauthorized" };
 
-  // ✅ FIX: Naye Schema ke hisaab se User aur uska Hotel dhoondo
   const user = await db.user.findUnique({
     where: { email: session.user.email as string },
     include: {
-        ownedHotel: true, // Agar Owner hai
-        workingAt: true   // Agar Staff hai
+      ownedHotel: true,
+      workingAt: true
     }
   });
 
@@ -28,32 +27,52 @@ export async function createRoom(formData: FormData) {
   const number = formData.get("number") as string;
   const type = formData.get("type") as string;
   const price = parseFloat(formData.get("price") as string);
+  const image = formData.get("image") as string; // ✅ Image fetch kiya
 
   if (!number || !type || !price) {
     return { error: "All fields are required" };
   }
 
+  // ✅ NEW: Plan Limit Check
+  const subscription = await db.subscription.findUnique({
+    where: { hotelId: hotel.id },
+    include: { plan: true }
+  });
+
+  if (!subscription || !subscription.plan) {
+    return { error: "Subscription plan not found. Please contact support." };
+  }
+
+  const currentRoomCount = await db.room.count({
+    where: { hotelId: hotel.id }
+  });
+
+  if (subscription.plan.maxRooms !== -1 && currentRoomCount >= subscription.plan.maxRooms) {
+    return { error: `Plan reached! You can't add more than ${subscription.plan.maxRooms} rooms on the ${subscription.plan.name} plan.` };
+  }
+
   try {
     // Check duplication in THIS specific hotel
     const existingRoom = await db.room.findFirst({
-        where: {
-            hotelId: hotel.id, // ✅ Correct Hotel ID
-            number: number
-        }
+      where: {
+        hotelId: hotel.id,
+        number: number
+      }
     });
 
     if (existingRoom) {
-        return { error: `Room ${number} already exists!` };
+      return { error: `Room ${number} already exists!` };
     }
 
     // Create Room
     await db.room.create({
       data: {
-        number, 
-        type,   
+        number,
+        type,
         price,
-        hotelId: hotel.id, // ✅ Correct Hotel ID
-        status: "AVAILABLE"
+        hotelId: hotel.id,
+        status: "AVAILABLE",
+        image: image || null // ✅ Save kiya (agar image nahi hai to null)
       }
     });
 
@@ -68,8 +87,6 @@ export async function createRoom(formData: FormData) {
 // UPDATE STATUS
 export async function updateRoomStatus(roomId: string, newStatus: string) {
   try {
-    // Future Note: Security ke liye humein check karna chahiye ki ye room usi hotel ka hai jiska user hai.
-    // Abhi ke liye simple rakhte hain.
     await db.room.update({
       where: { id: roomId },
       // @ts-ignore

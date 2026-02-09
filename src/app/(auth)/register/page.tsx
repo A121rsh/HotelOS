@@ -1,22 +1,22 @@
-// src/app/page.tsx (or src/app/page.tsx depending on your route)
+// src/app/page.tsx (or src/app/(auth)/register/page.tsx depending on your route)
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { registerHotel } from "@/actions/register"; 
-import ImageUpload from "@/components/ImageUpload"; 
-import { 
-  Loader2, 
-  Hotel, 
-  User, 
-  Mail, 
-  Lock, 
-  Phone, 
-  Building, 
+import { registerHotel } from "@/actions/register";
+import ImageUpload from "@/components/ImageUpload";
+import {
+  Loader2,
+  Hotel,
+  User,
+  Mail,
+  Lock,
+  Phone,
+  Building,
   Camera,
   CheckCircle,
   ArrowRight,
@@ -52,37 +52,55 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/dashboard");
+      // router.replace("/dashboard"); // 🛑 Prevent Auto-Redirect Loop
     }
   }, [status, router]);
 
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Card className="max-w-md w-full p-6 text-center">
+          <h2 className="text-xl font-bold mb-4">You are already logged in</h2>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => router.push("/dashboard")}>
+              Go to Dashboard
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/api/auth/signout")}>
+              Log Out
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); 
+    event.preventDefault();
     setLoading(true);
     setErrors({});
 
     const formData = new FormData(event.currentTarget);
-    
+
     if (logoUrl) {
-        formData.append("logo", logoUrl);
+      formData.append("logo", logoUrl);
     }
 
     try {
-        const result = await registerHotel(formData);
+      const result = await registerHotel(formData);
 
-        if (result?.error) {
-            setErrors({ form: result.error });
-        } else {
-            setSuccess(true);
-            setTimeout(() => {
-                router.push("/login");
-            }, 3000);
-        }
+      if (result?.error) {
+        setErrors({ form: result.error });
+      } else {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/login");
+        }, 3000);
+      }
     } catch (error) {
-        console.error(error);
-        setErrors({ form: "Something went wrong. Please try again." });
+      console.error(error);
+      setErrors({ form: "Something went wrong. Please try again." });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -112,7 +130,7 @@ export default function RegisterPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600"></div>
-          
+
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto mb-4">
               <div className="h-20 w-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
@@ -195,7 +213,7 @@ export default function RegisterPage() {
 
         <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600"></div>
-          
+
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <Building className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -226,7 +244,7 @@ export default function RegisterPage() {
                     Owner Information
                   </h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="ownerName" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -245,7 +263,7 @@ export default function RegisterPage() {
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Mail className="h-4 w-4" />
@@ -301,7 +319,7 @@ export default function RegisterPage() {
                     Hotel Information
                   </h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="hotelName" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -320,7 +338,7 @@ export default function RegisterPage() {
                       <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="mobile" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Phone className="h-4 w-4" />
@@ -353,12 +371,12 @@ export default function RegisterPage() {
                     Hotel Branding
                   </h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   <Card className="bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700">
                     <CardContent className="pt-6">
-                      <ImageUpload 
-                        value={logoUrl ? [logoUrl] : []} 
+                      <ImageUpload
+                        value={logoUrl ? [logoUrl] : []}
                         onChange={(url) => setLogoUrl(url)}
                         onRemove={() => setLogoUrl("")}
                       />
@@ -416,8 +434,8 @@ export default function RegisterPage() {
 
               <div className="text-center text-sm text-slate-600 dark:text-slate-400">
                 Already have an account?{" "}
-                <a 
-                  href="/login" 
+                <a
+                  href="/login"
                   className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
                   Sign in here
@@ -444,7 +462,7 @@ export default function RegisterPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -456,7 +474,7 @@ export default function RegisterPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">

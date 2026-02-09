@@ -30,7 +30,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 px-4">
       <div className="max-w-lg w-full bg-white p-8 rounded-2xl shadow-xl text-center border border-slate-100 print:shadow-none print:border-none">
-        
+
         {/* Success Icon */}
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -80,13 +80,25 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             </span>
           </div>
 
-          <div className="flex justify-between items-center pt-2">
+          <div className="flex justify-between items-center pt-2 border-t border-slate-200 mt-2">
             <span className="text-sm text-slate-500">
-              Amount Due (at Hotel)
+              {booking.paidAmount > 0 ? "Total Paid" : "Amount Due (at Hotel)"}
             </span>
-            <span className="font-bold text-green-600 text-lg">
+            <span className={`font-bold text-lg ${booking.paidAmount > 0 ? "text-green-600" : "text-orange-600"}`}>
               ₹{booking.totalAmount}
             </span>
+          </div>
+
+          <div className="text-center mt-4">
+            {booking.paidAmount > 0 ? (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                PAID ONLINE
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                PAY AT HOTEL
+              </span>
+            )}
           </div>
         </div>
 

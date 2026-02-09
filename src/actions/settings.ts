@@ -37,6 +37,13 @@ export async function updateHotelSettings(
       );
     }
 
+    // Handle Amenities (Checkboxes return multiple values)
+    const amenities = formData.getAll("amenities") as string[];
+
+    // Handle Image (Simple URL input for now, MVP)
+    const bannerImage = formData.get("bannerImage") as string;
+    const images = bannerImage ? [bannerImage] : [];
+
     await db.hotel.update({
       where: { id: user.ownedHotel.id },
       data: {
@@ -45,6 +52,8 @@ export async function updateHotelSettings(
         hotelEmail: email,
         gstNumber,
         address,
+        amenities, // ✅ Save Array
+        images: images.length > 0 ? images : undefined, // Only update if new image provided
       },
     });
 

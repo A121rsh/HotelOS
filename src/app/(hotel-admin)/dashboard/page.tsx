@@ -3,11 +3,11 @@ import { db } from "@/lib/db";
 import { getHotelByUserId } from "@/lib/hotel-helper";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { 
-  IndianRupee, 
-  BedDouble, 
-  Clock, 
-  ArrowUpRight, 
+import {
+  IndianRupee,
+  BedDouble,
+  Clock,
+  ArrowUpRight,
   Sparkles,
   ArrowDownLeft,
   Calendar,
@@ -32,38 +32,22 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const role = session.user.role; 
+  const role = session.user.role;
 
   // 🛑 RULE 1: Housekeeping ko seedha unke page par bhejo
   if (role === "HOUSEKEEPING") {
     redirect("/dashboard/housekeeping");
   }
 
+  // 🛑 RULE 2: Super Admin ko admin panel bhejo
+  if (role === "ADMIN") {
+    redirect("/admin");
+  }
+
   const hotelBasic = await getHotelByUserId(session.user.id as string);
 
   if (!hotelBasic) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border border-slate-200 shadow-lg">
-          <CardContent className="pt-6 text-center">
-            <div className="mb-4">
-              <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-                <AlertCircle className="h-8 w-8 text-red-600" />
-              </div>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">
-              No Hotel Found
-            </h3>
-            <p className="text-slate-600 mb-4">
-              Please contact the system administrator to set up your hotel.
-            </p>
-            <Button variant="outline" asChild>
-              <Link href="/support">Contact Support</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    redirect("/onboarding");
   }
 
   const hotelData = await db.hotel.findUnique({
@@ -73,7 +57,8 @@ export default async function DashboardPage() {
       bookings: {
         orderBy: { createdAt: 'desc' },
         include: { room: true },
-      }
+      },
+      user: true // Include user data for profile display on dashboard sidebar
     }
   });
 
@@ -87,18 +72,18 @@ export default async function DashboardPage() {
   const availableRooms = rooms.filter(r => r.status === 'AVAILABLE').length;
   const dirtyRooms = rooms.filter(r => r.status === 'DIRTY').length;
   const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
-  
+
   const totalRevenue = bookings
     .filter(b => b.status !== 'CANCELLED')
     .reduce((acc, booking) => acc + booking.paidAmount, 0);
 
-  const todaysCheckIns = bookings.filter(b => 
-    new Date(b.checkIn).toISOString().split('T')[0] === new Date().toISOString().split('T')[0] 
+  const todaysCheckIns = bookings.filter(b =>
+    new Date(b.checkIn).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]
     && b.status === 'CONFIRMED'
   );
 
-  const todaysCheckOuts = bookings.filter(b => 
-    new Date(b.checkOut).toISOString().split('T')[0] === new Date().toISOString().split('T')[0] 
+  const todaysCheckOuts = bookings.filter(b =>
+    new Date(b.checkOut).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]
     && b.status === 'CONFIRMED'
   );
 
@@ -136,9 +121,9 @@ export default async function DashboardPage() {
           <div className="hidden md:flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-slate-200">
             <Calendar className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-slate-700">
-              {new Date().toLocaleDateString('en-IN', { 
-                weekday: 'short', 
-                day: 'numeric', 
+              {new Date().toLocaleDateString('en-IN', {
+                weekday: 'short',
+                day: 'numeric',
                 month: 'short',
                 year: 'numeric'
               })}
@@ -201,7 +186,7 @@ export default async function DashboardPage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="bg-blue-600 h-full rounded-full transition-all duration-300"
                     style={{ width: `${occupancyRate}%` }}
                   />
@@ -484,9 +469,9 @@ export default async function DashboardPage() {
                   <p className="text-sm text-slate-500">Since {new Date(hotelData.createdAt).getFullYear()}</p>
                 </div>
               </div>
-              
+
               <div className="h-px bg-slate-200"></div>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Contact</span>
@@ -494,7 +479,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Owner</span>
-                  <span className="font-medium text-slate-900">{hotelData.ownerName}</span>
+                  <span className="font-medium text-slate-900">{hotelData.user?.name || "Unknown"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Status</span>
