@@ -10,6 +10,52 @@ datasource db {
 }
 
 // =======================
+// SYSTEM CORE (✅ NEW)
+// =======================
+model SystemConfig {
+  id              String   @id @default("singleton")
+  siteName        String   @default("HotelOS")
+  siteLogo        String?
+  supportEmail    String   @default("support@hotelos.com")
+  
+  // SMTP Settings (Encrypted in real apps)
+  smtpHost        String?
+  smtpPort        Int?
+  smtpUser        String?
+  smtpPass        String?
+  
+  // State Management
+  isMaintenanceMode Boolean @default(false)
+  maintenanceMessage String? @default("System is undergoing scheduled synchronization. Please stand by.")
+  
+  // Theme
+  primaryColor    String   @default("#2563eb")
+  allowDarkMode   Boolean  @default(true)
+
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  type        String   // "LOGIN", "FAILED_LOGIN", "LOGOUT", "ADMIN_ACTION", "PAYMENT", "ERROR"
+  severity    String   @default("INFO") // "INFO", "WARNING", "CRITICAL"
+  
+  message     String
+  metadata    Json?    // Optional debug data
+  
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  hotelId     String?
+  hotel       Hotel?   @relation(fields: [hotelId], references: [id])
+  
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt   DateTime @default(now())
+}
+
+// =======================
 // USER ROLES
 // =======================
 enum Role {
@@ -41,8 +87,13 @@ model User {
   // TASKS
   tasks         Task[]
 
+  // PERMISSIONS
+  permissions   String[]  @default([])
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  auditLogs     AuditLog[]
 }
 
 // =======================
@@ -139,11 +190,16 @@ model Hotel {
   bookings    Booking[]
   tasks       Task[]
   
+  // ✅ NEW: Channel Manager
+  channels    Channel[]
+  
   // Invoice History
   invoices    SubscriptionInvoice[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  auditLogs   AuditLog[]
 }
 
 // =======================
@@ -191,6 +247,84 @@ model Task {
 }
 
 // =======================
+// CHANNEL MANAGER (✅ NEW PHASE 3)
+// =======================
+
+enum ChannelType {
+  BOOKING_COM
+  AIRBNB
+  EXPEDIA
+  AGODA
+  ICAL
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+model Channel {
+  id              String      @id @default(cuid())
+  name            String      // e.g. "Airbnb - Beachfront"
+  type            ChannelType
+  
+  // Credentials / Auth
+  apiKey          String?     
+  apiSecret       String?
+  vendorId        String?     // External ID
+  iCalUrl         String?     // For iCal based sync
+  
+  isActive        Boolean     @default(true)
+  lastSyncAt      DateTime?
+  
+  hotelId         String
+  hotel           Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  
+  mappings        ChannelMapping[]
+  syncLogs        ChannelSyncLog[]
+  bookings        Booking[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model ChannelMapping {
+  id              String      @id @default(cuid())
+  
+  externalRoomId  String      // ID on the OTA
+  externalRateId  String?     // Rate plan ID on OTA
+  
+  // Pricing Strategy
+  markupType      String      @default("PERCENTAGE") // "PERCENTAGE" or "FIXED"
+  markupValue     Float       @default(0)            // e.g. 15% or ₹500
+  
+  channelId       String
+  channel         Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  
+  roomId          String
+  room            Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([channelId, roomId])
+}
+
+model ChannelSyncLog {
+  id              String      @id @default(cuid())
+  type            String      // "ARI_PUSH", "RESERVATION_PULL"
+  status          SyncStatus  @default(PENDING)
+  message         String?
+  payload         Json?       // The data sent/received
+  
+  channelId       String
+  channel         Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime    @default(now())
+}
+
+// =======================
 // ROOM MANAGEMENT
 // =======================
 enum RoomStatus {
@@ -217,6 +351,9 @@ model Room {
   hotel     Hotel      @relation(fields: [hotelId], references: [id])
 
   bookings  Booking[]
+  
+  // ✅ NEW: Channel Links
+  channelMappings ChannelMapping[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -253,6 +390,12 @@ model Booking {
   dueAmount   Float         @default(0)
 
   status      BookingStatus @default(CONFIRMED)
+
+  // ✅ NEW: Channel Info
+  source          String        @default("DIRECT") // "DIRECT", "CHANNEL_MANAGER"
+  channelId       String?
+  channel         Channel?      @relation(fields: [channelId], references: [id])
+  externalBookingId String?     // ID on the OTA
 
   roomId      String
   room        Room          @relation(fields: [roomId], references: [id])

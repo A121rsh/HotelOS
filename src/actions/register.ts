@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { addDays } from "date-fns";
 
 export async function registerHotel(formData: FormData) {
   const hotelName = formData.get("hotelName") as string;
@@ -10,6 +11,7 @@ export async function registerHotel(formData: FormData) {
   const password = formData.get("password") as string;
   const mobile = formData.get("mobile") as string;
   const logo = formData.get("logo") as string;
+  const planId = formData.get("planId") as string;
 
   if (!hotelName || !ownerName || !email || !password || !mobile) {
     return { error: "Please fill all required fields." };
@@ -21,32 +23,49 @@ export async function registerHotel(formData: FormData) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await db.$transaction(async (tx) => {
-        const newUser = await tx.user.create({
-            data: {
-                name: ownerName,
-                email: email,
-                password: hashedPassword,
-                role: "OWNER"
-            }
-        });
+    const result = await db.$transaction(async (tx) => {
+      // 1. Create User
+      const newUser = await tx.user.create({
+        data: {
+          name: ownerName,
+          email: email,
+          password: hashedPassword,
+          role: "OWNER"
+        }
+      });
 
-        await tx.hotel.create({
-            data: {
-                name: hotelName,
-                mobile: mobile,
-                hotelEmail: email,
-                userId: newUser.id,
-                logo: logo || null,
-                isActive: true
-            }
+      // 2. Create Hotel
+      const newHotel = await tx.hotel.create({
+        data: {
+          name: hotelName,
+          mobile: mobile,
+          hotelEmail: email,
+          userId: newUser.id,
+          logo: logo || null,
+          isActive: true
+        }
+      });
+
+      // 3. Create initial Subscription if plan selected
+      if (planId) {
+        await tx.subscription.create({
+          data: {
+            hotelId: newHotel.id,
+            planId: planId,
+            status: "PENDING_APPROVAL", // Will become ACTIVE after payment/approval
+            startDate: new Date(),
+            endDate: addDays(new Date(), 30), // Default 30 days
+          }
         });
+      }
+
+      return { success: true, userId: newUser.id, hotelId: newHotel.id };
     });
 
-    return { success: true };
+    return result;
 
   } catch (error) {
     console.error("Registration Error:", error);
-    return { error: "Something went wrong." };
+    return { error: "Something went wrong during registration." };
   }
 }

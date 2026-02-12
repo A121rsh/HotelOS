@@ -168,6 +168,8 @@ export async function verifyAndCreateBooking(
     });
 
     return { success: true, bookingId: booking.id };
+
+    return { success: true, bookingId: booking.id };
   } catch (error) {
     return { error: "Booking creation failed after payment" };
   }
@@ -194,6 +196,8 @@ export async function createPayInHotelBooking(bookingData: any) {
         idNumber: "N/A",
       }
     });
+
+    return { success: true, bookingId: booking.id };
 
     return { success: true, bookingId: booking.id };
   } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ArrowLeft, LayoutDashboard, CreditCard } from "lucide-react";
 import Link from "next/link";
@@ -9,8 +9,12 @@ import { cn } from "@/lib/utils";
 interface AccessGuardProps {
     children: React.ReactNode;
     isLocked: boolean;
+    isBlocked?: boolean;
     blockedFeatures: string[];
     hasActivePlan: boolean;
+    subscriptionStatus?: string;
+    role?: string;
+    permissions?: string[];
 }
 
 const FEATURE_ROUTES = [
@@ -22,11 +26,23 @@ const FEATURE_ROUTES = [
     { path: "/dashboard/staff", feature: "STAFF" },
     { path: "/dashboard/settings", feature: "SETTINGS" },
     { path: "/dashboard/pricing", feature: "PRICING" },
+    { path: "/dashboard/channels", feature: "CHANNELS" },
+    // Dashboard itself is usually allowed, but let's keep it here for mapping
     { path: "/dashboard", feature: "DASHBOARD" },
 ];
 
-export function AccessGuard({ children, isLocked, blockedFeatures, hasActivePlan }: AccessGuardProps) {
+export function AccessGuard({
+    children,
+    isLocked,
+    isBlocked = false,
+    blockedFeatures,
+    hasActivePlan,
+    subscriptionStatus,
+    role,
+    permissions = []
+}: AccessGuardProps) {
     const pathname = usePathname();
+    const router = useRouter(); // Import useRouter
 
     // 1. Find which feature the user is trying to access
     const currentRoute = FEATURE_ROUTES.find(r => pathname === r.path || pathname.startsWith(r.path + "/"));
@@ -35,11 +51,40 @@ export function AccessGuard({ children, isLocked, blockedFeatures, hasActivePlan
 
     const feature = currentRoute.feature;
 
-    // 2. Check Expiry Lock
-    // If locked, only Bookings and Pricing are allowed
+    // 🛡️ CENTRAL AUTHORITY BLOCK
+    if (isBlocked) {
+        return <LockedState
+            title="Authority Revoked"
+            description="Access to this node has been suspended by the central administration due to unauthorized activity or pending review. Please contact support."
+        />;
+    }
+
+    // 🛡️ MANAGER PERMISSION CHECK
+    if (role === "MANAGER" && feature !== "DASHBOARD") {
+        if (!permissions.includes(feature)) {
+            // Instant Redirect
+            // We return null to prevent flashing the protected content
+            // The useEffect will handle the push, but we can also use a redirect component logic or just render nothing.
+            // But we need to call router.push in effect.
+            if (typeof window !== "undefined") {
+                router.replace("/dashboard");
+            }
+            return null;
+        }
+    }
+
+    // 2. Check Expiry or Pending Lock
     if (isLocked) {
         const allowedWhenLocked = ["BOOKINGS", "PRICING"];
         if (!allowedWhenLocked.includes(feature)) {
+            if (subscriptionStatus === "PENDING_APPROVAL") {
+                return <LockedState
+                    title="Awaiting Authority"
+                    description="Your payment has been received and is currently being verified. Root access will be granted once administration authorizes the node."
+                    type="info"
+                />;
+            }
+
             return <LockedState
                 title="Subscription Expired"
                 description="Your access is restricted because your subscription has expired. Please renew your plan to continue using this feature."

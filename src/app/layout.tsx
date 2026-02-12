@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
-import AuthProvider from "@/components/providers/SessionProvider"; // ✅ AuthProvider
+import AuthProvider from "@/components/providers/SessionProvider";
+import { MaintenanceGuard } from "@/components/MaintenanceGuard";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-inter",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+});
+
+const instrument = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument",
 });
 
 export const metadata: Metadata = {
@@ -22,11 +34,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased font-sans`}
+        className={`${inter.variable} ${outfit.variable} ${instrument.variable} antialiased font-inter`}
       >
         {/* ✅ AuthProvider se wrap kiya */}
         <AuthProvider>
-          {children}
+          <MaintenanceGuard>
+            {children}
+          </MaintenanceGuard>
+          <Toaster position="top-center" richColors />
         </AuthProvider>
 
         {/* ✅ Cloudinary Upload Widget Script */}

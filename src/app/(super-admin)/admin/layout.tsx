@@ -1,8 +1,6 @@
-
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { LayoutDashboard, Users, CreditCard, LogOut } from "lucide-react";
+import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 
 export default async function AdminLayout({
     children,
@@ -13,62 +11,33 @@ export default async function AdminLayout({
 
     // Protect Admin Route: Only allow role === "ADMIN"
     if (!session || session.user.role !== "ADMIN") {
-        // If user is logged in but not admin, send to 403 or home
         if (session) {
-            redirect("/"); // Or show an unauthorized page
+            redirect("/");
         }
-        // If not logged in, send to login
         redirect("/login");
     }
 
     return (
-        <div className="flex min-h-screen bg-slate-50">
-            {/* Sidebar */}
-            <aside className="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0">
-                <div className="p-6">
-                    <h2 className="text-2xl font-bold tracking-tight">HotelOS Admin</h2>
-                    <p className="text-xs text-slate-400 mt-1">Super Admin Console</p>
+        <div className="flex min-h-screen bg-slate-50 font-inter">
+            {/* HIGH-AUTHORITY SIDEBAR (Responsive) */}
+            <SuperAdminSidebar email={session.user.email as string} />
+
+            {/* MAIN INTELLIGENCE CANVAS */}
+            <main className="flex-1 min-h-screen relative overflow-hidden pt-16 lg:pt-0">
+                {/* Architect Background */}
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-50/40 rounded-full blur-[120px] -z-10 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-slate-100/30 rounded-full blur-[100px] -z-10 pointer-events-none" />
+
+                <div className="p-6 md:p-10 lg:p-14">
+                    {children}
                 </div>
-
-                <nav className="flex-1 px-4 space-y-2">
-                    <Link
-                        href="/admin"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg hover:bg-slate-800 transitionify"
-                    >
-                        <LayoutDashboard className="h-5 w-5" />
-                        Dashboard
-                    </Link>
-                    <Link
-                        href="/admin/hotels"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg hover:bg-slate-800 transitionify"
-                    >
-                        <Users className="h-5 w-5" />
-                        Hotels
-                    </Link>
-                    <Link
-                        href="/admin/plans"
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg hover:bg-slate-800 transitionify"
-                    >
-                        <CreditCard className="h-5 w-5" />
-                        Plans & Billing
-                    </Link>
-                </nav>
-
-                <div className="p-4 border-t border-slate-800">
-                    {/* Logout logic can be added here or reuse user button */}
-                    <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400">
-                        <LogOut className="h-4 w-4" />
-                        <span>
-                            {session.user.email}
-                        </span>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 ml-64 p-8">
-                {children}
             </main>
         </div>
     );
+}
+
+function HotelsIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="8" height="8" x="2" y="2" rx="2" /><path d="M14 2c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2" /><path d="M20 2c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2" /><path d="M10 18H2" /><path d="M10 14H2" /><path d="M2 22h12" /><path d="M16 14v8" /><path d="M20 14v8" /><path d="M22 18h-4" /></svg>
+    )
 }
