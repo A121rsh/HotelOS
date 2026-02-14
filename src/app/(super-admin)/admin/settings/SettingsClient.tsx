@@ -134,9 +134,9 @@ export function SettingsClient({ initialConfig }: { initialConfig: any }) {
                     </div>
 
                     <div className="space-y-8">
-                        <SettingField label="Establishment Name" value={config.siteName} onChange={(v) => setConfig({ ...config, siteName: v })} placeholder="HotelOS Enterprise" />
-                        <SettingField label="Master Support Email" value={config.supportEmail} onChange={(v) => setConfig({ ...config, supportEmail: v })} placeholder="central@hotelos.com" />
-                        <SettingField label="Primary Global Color" value={config.primaryColor} onChange={(v) => setConfig({ ...config, primaryColor: v })} type="color" />
+                        <SettingField label="Establishment Name" value={config.siteName} onChange={(v: string) => setConfig({ ...config, siteName: v })} placeholder="HotelOS Enterprise" />
+                        <SettingField label="Master Support Email" value={config.supportEmail} onChange={(v: string) => setConfig({ ...config, supportEmail: v })} placeholder="central@hotelos.com" />
+                        <SettingField label="Primary Global Color" value={config.primaryColor} onChange={(v: string) => setConfig({ ...config, primaryColor: v })} type="color" />
                     </div>
                 </div>
 
@@ -152,13 +152,13 @@ export function SettingsClient({ initialConfig }: { initialConfig: any }) {
                     <div className="space-y-8">
                         <div className="grid grid-cols-3 gap-6">
                             <div className="col-span-2">
-                                <SettingField label="SMTP Host Address" value={config.smtpHost} onChange={(v) => setConfig({ ...config, smtpHost: v })} placeholder="smtp.resend.com" />
+                                <SettingField label="SMTP Host Address" value={config.smtpHost} onChange={(v: string) => setConfig({ ...config, smtpHost: v })} placeholder="smtp.resend.com" />
                             </div>
-                            <SettingField label="Node Port" value={config.smtpPort} onChange={(v) => setConfig({ ...config, smtpPort: parseInt(v) })} type="number" />
+                            <SettingField label="Node Port" value={config.smtpPort} onChange={(v: string) => setConfig({ ...config, smtpPort: parseInt(v) })} type="number" />
                         </div>
-                        <SettingField label="Identity (Username)" value={config.smtpUser} onChange={(v) => setConfig({ ...config, smtpUser: v })} placeholder="resend@node.smtp" />
+                        <SettingField label="Identity (Username)" value={config.smtpUser} onChange={(v: string) => setConfig({ ...config, smtpUser: v })} placeholder="resend@node.smtp" />
                         <div className="relative">
-                            <SettingField label="Access Cipher (Password)" value={config.smtpPass} onChange={(v) => setConfig({ ...config, smtpPass: v })} type={showPass ? "text" : "password"} />
+                            <SettingField label="Access Cipher (Password)" value={config.smtpPass} onChange={(v: string) => setConfig({ ...config, smtpPass: v })} type={showPass ? "text" : "password"} />
                             <button
                                 type="button"
                                 onClick={() => setShowPass(!showPass)}
@@ -192,7 +192,15 @@ export function SettingsClient({ initialConfig }: { initialConfig: any }) {
     );
 }
 
-function SettingField({ label, value, onChange, placeholder, type = "text" }: any) {
+interface SettingFieldProps {
+    label: string;
+    value: string | number;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    type?: string;
+}
+
+function SettingField({ label, value, onChange, placeholder, type = "text" }: SettingFieldProps) {
     return (
         <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">{label}</Label>
