@@ -37,18 +37,18 @@ interface Stats {
     potentialRevenue: number;
 }
 
-export default function RoomsView({ rooms, stats }: { rooms: Room[], stats: Stats }) {
+export default function RoomsView({ rooms, stats, hotelId }: { rooms: Room[], stats: Stats, hotelId: string }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
 
     const filteredRooms = rooms.filter(room => {
-        const matchesSearch = 
+        const matchesSearch =
             room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
             room.type.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        const matchesFilter = 
+
+        const matchesFilter =
             filterStatus === "ALL" || room.status === filterStatus;
-        
+
         return matchesSearch && matchesFilter;
     });
 
@@ -138,7 +138,7 @@ export default function RoomsView({ rooms, stats }: { rooms: Room[], stats: Stat
                 <AnimatePresence mode="popLayout">
                     {filteredRooms.map((room, index) => {
                         const config = statusConfig[room.status as keyof typeof statusConfig];
-                        
+
                         return (
                             <motion.div
                                 layout
@@ -167,7 +167,7 @@ export default function RoomsView({ rooms, stats }: { rooms: Room[], stats: Stat
                                             <Bed className="h-12 w-12 text-slate-800 group-hover:text-[#a1f554]/20 transition-colors" />
                                         </div>
                                     )}
-                                    
+
                                     {/* Status Badge */}
                                     <div className="absolute top-3 left-3 flex flex-col gap-2">
                                         <Badge className={cn("text-xs font-semibold backdrop-blur-md", config?.bg, config?.border, config?.color)}>
@@ -231,8 +231,8 @@ export default function RoomsView({ rooms, stats }: { rooms: Room[], stats: Stat
                         </div>
                         <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Rooms Found</h3>
                         <p className="text-slate-400 text-sm max-w-sm mx-auto mb-8 px-4">
-                            {searchQuery || filterStatus !== "ALL" 
-                                ? "Try adjusting your search or filters" 
+                            {searchQuery || filterStatus !== "ALL"
+                                ? "Try adjusting your search or filters"
                                 : "Add your first room to get started"
                             }
                         </p>
@@ -246,15 +246,15 @@ export default function RoomsView({ rooms, stats }: { rooms: Room[], stats: Stat
     );
 }
 
-function StatCard({ 
-    label, 
-    value, 
-    icon: Icon, 
-    color 
-}: { 
-    label: string; 
-    value: string | number; 
-    icon: any; 
+function StatCard({
+    label,
+    value,
+    icon: Icon,
+    color
+}: {
+    label: string;
+    value: string | number;
+    icon: any;
     color: string;
 }) {
     const colorClasses = {
