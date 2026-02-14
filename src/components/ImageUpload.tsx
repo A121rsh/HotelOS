@@ -11,13 +11,15 @@ interface ImageUploadProps {
   onChange: (value: string) => void;
   onRemove: (value: string) => void;
   value: string[];
+  label?: string;
 }
 
 export default function ImageUpload({
   disabled,
   onChange,
   onRemove,
-  value
+  value,
+  label = "Upload Image"
 }: ImageUploadProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -34,16 +36,17 @@ export default function ImageUpload({
   }
 
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
+    <div className="flex flex-col items-center">
+      <div className="mb-4 flex flex-wrap justify-center gap-4">
         {value.map((url) => (
-          <div key={url} className="relative w-[200px] h-[200px] rounded-md overflow-hidden border border-slate-200">
-            <div className="z-10 absolute top-2 right-2">
+          <div key={url} className="relative w-[180px] h-[120px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
+            <div className="z-10 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 type="button"
                 onClick={() => onRemove(url)}
                 variant="destructive"
                 size="icon"
+                className="h-8 w-8 rounded-lg"
               >
                 <Trash className="h-4 w-4" />
               </Button>
@@ -58,9 +61,9 @@ export default function ImageUpload({
         ))}
       </div>
 
-      <CldUploadWidget 
-        onSuccess={onUpload} 
-        uploadPreset="hotel_os"  // ✅✅✅ NAME FIXED: "hotel_os_preset" -> "hotel_os"
+      <CldUploadWidget
+        onSuccess={onUpload}
+        uploadPreset="hotel_os"
       >
         {({ open }) => {
           const onClick = () => {
@@ -71,12 +74,11 @@ export default function ImageUpload({
             <Button
               type="button"
               disabled={disabled}
-              variant="secondary"
               onClick={onClick}
-              className="bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200"
+              className="h-12 px-6 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-[#b5f347] hover:text-black hover:border-[#b5f347] transition-all font-black uppercase text-[10px] tracking-widest"
             >
               <ImagePlus className="h-4 w-4 mr-2" />
-              Upload Logo
+              {label}
             </Button>
           );
         }}

@@ -69,9 +69,13 @@ enum Role {
 // =======================
 model User {
   id            String    @id @default(cuid())
+  firstName     String?
+  lastName      String?
   name          String?
   email         String    @unique
   password      String?
+  country       String?
+  state         String?
   role          Role      @default(OWNER)
 
   // OWNER RELATION (1 Hotel : 1 Owner)

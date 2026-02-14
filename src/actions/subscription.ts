@@ -52,7 +52,10 @@ export async function verifyAndActivateSubscription(
     razorpayOrderId: string,
     razorpaySignature: string,
     planId: string,
-    hotelId: string
+    hotelId: string,
+    userEmail?: string,
+    userPassword?: string,
+    userName?: string
 ) {
     try {
         // In a real app, you should verify the signature here using crypto
@@ -83,14 +86,14 @@ export async function verifyAndActivateSubscription(
                 where: { hotelId: hotelId },
                 update: {
                     planId: planId,
-                    status: "PENDING_APPROVAL", // Awaiting Admin Authorization
+                    status: "ACTIVE", // Automatically Activated
                     startDate: new Date(),
                     endDate: addDays(new Date(), 30),
                 },
                 create: {
                     hotelId: hotelId,
                     planId: planId,
-                    status: "PENDING_APPROVAL",
+                    status: "ACTIVE",
                     startDate: new Date(),
                     endDate: addDays(new Date(), 30),
                 }
@@ -103,10 +106,16 @@ export async function verifyAndActivateSubscription(
             });
         });
 
-        // 4. Send Confirmation Email
+        // 4. Send Confirmation Email & Credentials if provided
         const hotel = await db.hotel.findUnique({ where: { id: hotelId } });
         if (hotel) {
             await sendPlanConfirmationEmail(hotel.hotelEmail, hotel.name, plan.name, plan.price);
+
+            // Send Credentials Email if passed from client
+            if (userEmail && userPassword && userName) {
+                const { sendCredentialsEmail } = await import("@/lib/mail");
+                await sendCredentialsEmail(userEmail, userPassword, userName);
+            }
         }
 
         revalidatePath("/dashboard");

@@ -2,96 +2,130 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Loader2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Loader2,
+  CheckCircle2,
+  LogOut,
+  Trash2,
+  DollarSign,
+  FileText
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { deleteBooking, updateBookingStatus } from "@/actions/booking";
 import GenerateInvoiceModal from "@/components/GenerateInvoiceModal";
-import AddPaymentModal from "@/components/AddPaymentModal"; // ✅ Import kiya
+import AddPaymentModal from "@/components/AddPaymentModal";
+import { toast } from "sonner";
 
 interface BookingActionsProps {
   bookingId: string;
   status: string;
   roomPrice: number;
-  dueAmount: number; // ✅ New Prop: Due amount aana zaroori hai
+  dueAmount: number;
 }
 
 export default function BookingActions({ bookingId, status, roomPrice, dueAmount }: BookingActionsProps) {
   const [loading, setLoading] = useState(false);
 
-  // Status update handler
   const handleStatusUpdate = async (newStatus: "CHECKED_IN" | "CHECKED_OUT") => {
     setLoading(true);
-    await updateBookingStatus(bookingId, newStatus);
+    const result = await updateBookingStatus(bookingId, newStatus);
     setLoading(false);
+
+    if (result.success) {
+      toast.success(newStatus === "CHECKED_IN" ? "Guest checked in successfully" : "Guest checked out successfully");
+    } else {
+      toast.error(result.error || "Status update failed");
+    }
   };
 
-  // Delete handler
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to cancel this booking?")) {
-        setLoading(true);
-        await deleteBooking(bookingId);
-        setLoading(false);
+    if (confirm("Are you sure you want to delete this booking? This action cannot be undone.")) {
+      setLoading(true);
+      const result = await deleteBooking(bookingId);
+      setLoading(false);
+
+      if (result.success) {
+        toast.success("Booking deleted successfully");
+      } else {
+        toast.error(result.error || "Delete failed");
+      }
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-9 w-9 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MoreHorizontal className="h-4 w-4" />
+          )}
         </Button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent align="end" className="w-56 p-2 bg-white rounded-xl shadow-xl border border-slate-100">
-        <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Manage Booking
+
+      <DropdownMenuContent
+        align="end"
+        className="w-56 p-2 bg-[#0f110d] rounded-xl shadow-2xl border border-white/10"
+      >
+        {/* Payment Actions */}
+        <div className="px-2 py-1.5 mb-2">
+          <p className="text-xs text-slate-500 font-medium">Payment</p>
         </div>
 
-        {/* ✅ ADD PAYMENT OPTION (Sirf tab dikhega jab Due Amount > 0 ho) */}
-        {dueAmount > 0 && (
-            // stopPropagation zaroori hai taaki modal click karne par dropdown band na ho jaye
-            <div onSelect={(e) => e.preventDefault()} onClick={(e) => e.stopPropagation()}>
-                <AddPaymentModal bookingId={bookingId} dueAmount={dueAmount} />
-            </div>
-        )}
-
-        {/* Generate Invoice Option */}
-        <div onSelect={(e) => e.preventDefault()} onClick={(e) => e.stopPropagation()}>
-             <GenerateInvoiceModal bookingId={bookingId} roomPrice={roomPrice} />
+        <div onClick={(e) => e.stopPropagation()} className="mb-2">
+          <AddPaymentModal bookingId={bookingId} dueAmount={dueAmount} />
         </div>
 
-        <div className="h-px bg-slate-100 my-2" />
+        <div onClick={(e) => e.stopPropagation()}>
+          <GenerateInvoiceModal bookingId={bookingId} roomPrice={roomPrice} />
+        </div>
+
+        <DropdownMenuSeparator className="bg-white/10 my-2" />
 
         {/* Status Actions */}
-        <DropdownMenuItem 
-            onClick={() => handleStatusUpdate("CHECKED_IN")}
-            disabled={status === "CHECKED_IN" || status === "CANCELLED"}
-            className="cursor-pointer"
+        <div className="px-2 py-1.5 mb-2">
+          <p className="text-xs text-slate-500 font-medium">Status</p>
+        </div>
+
+        <DropdownMenuItem
+          onClick={() => handleStatusUpdate("CHECKED_IN")}
+          disabled={status === "CHECKED_IN"}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-white hover:bg-[#8ba4b8]/10 focus:bg-[#8ba4b8]/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-            <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Mark Check-In
+          <CheckCircle2 className="h-4 w-4 text-[#8ba4b8]" />
+          <span className="text-sm font-medium">Check In</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem 
-            onClick={() => handleStatusUpdate("CHECKED_OUT")}
-            disabled={status === "CHECKED_OUT" || status === "CANCELLED"}
-            className="cursor-pointer"
+        <DropdownMenuItem
+          onClick={() => handleStatusUpdate("CHECKED_OUT")}
+          disabled={status === "CHECKED_OUT"}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-white hover:bg-blue-500/10 focus:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-            <span className="w-2 h-2 rounded-full bg-slate-400 mr-2"></span> Mark Check-Out
+          <LogOut className="h-4 w-4 text-blue-400" />
+          <span className="text-sm font-medium">Check Out</span>
         </DropdownMenuItem>
 
-        <div className="h-px bg-slate-100 my-2" />
+        <DropdownMenuSeparator className="bg-white/10 my-2" />
 
-        {/* Cancel Action */}
-        <DropdownMenuItem 
-            onClick={handleDelete}
-            className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+        {/* Delete Action */}
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:bg-red-500/10"
         >
-            Cancel Booking
+          <Trash2 className="h-4 w-4" />
+          <span className="text-sm font-medium">Delete Booking</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

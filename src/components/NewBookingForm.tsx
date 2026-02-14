@@ -10,73 +10,46 @@ import {
     Loader2,
     Calendar,
     User,
-    ShieldCheck,
-    CreditCard,
-    MapPin,
     Phone,
     Mail,
-    Sparkles,
-    ArrowRight,
-    Search,
-    Building2,
-    Zap,
-    Download,
-    Eye,
-    Tag,
-    Clock,
     CheckCircle2,
-    IndianRupee
+    IndianRupee,
+    Fingerprint,
+    ChevronRight,
+    ArrowLeft,
+    DoorOpen,
+    Clock,
+    CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// --- 🎨 EXECUTIVE ICON SYSTEM ---
-const Icons = {
-    Cash: () => (
-        <div className="h-6 w-6 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100">
-            <CreditCard className="h-3.5 w-3.5" />
-        </div>
-    ),
-    UPI: () => (
-        <div className="h-6 w-6 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 border border-blue-100">
-            <Zap className="h-3.5 w-3.5" />
-        </div>
-    ),
-    Card: () => (
-        <div className="h-6 w-6 bg-slate-900 rounded-lg flex items-center justify-center text-white border border-slate-800">
-            <CreditCard className="h-3.5 w-3.5" />
-        </div>
-    ),
-    Aadhar: () => (
-        <div className="h-6 w-6 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600 border border-orange-100">
-            <ShieldCheck className="h-3.5 w-3.5" />
-        </div>
-    ),
-    Passport: () => (
-        <div className="h-6 w-6 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 border border-indigo-100">
-            <MapPin className="h-3.5 w-3.5" />
-        </div>
-    ),
-    User: () => (
-        <div className="h-6 w-6 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 border border-slate-200">
-            <User className="h-3.5 w-3.5" />
-        </div>
-    )
-};
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import Link from "next/link";
 
 export default function NewBookingForm({ rooms }: { rooms: any[] }) {
     const [loading, setLoading] = useState(false);
+    const [step, setStep] = useState(1);
 
-    // States
+    // Form States
+    const [guestName, setGuestName] = useState("");
+    const [guestMobile, setGuestMobile] = useState("");
+    const [guestEmail, setGuestEmail] = useState("");
     const [selectedRoomId, setSelectedRoomId] = useState("");
     const [checkIn, setCheckIn] = useState("");
     const [checkOut, setCheckOut] = useState("");
+    const [idType, setIdType] = useState("AADHAR");
+    const [idNumber, setIdNumber] = useState("");
+    const [idUrl, setIdUrl] = useState("");
     const [totalAmount, setTotalAmount] = useState(0);
     const [advance, setAdvance] = useState(0);
-    const [idUrl, setIdUrl] = useState("");
-
-    // Payment Mode & ID Type State for Icon Switching
     const [paymentMode, setPaymentMode] = useState("CASH");
-    const [idType, setIdType] = useState("AADHAR");
 
     // Auto-Calculate Bill
     useEffect(() => {
@@ -87,312 +60,452 @@ export default function NewBookingForm({ rooms }: { rooms: any[] }) {
                 const end = new Date(checkOut);
                 const diffTime = Math.abs(end.getTime() - start.getTime());
                 const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
                 if (days > 0) setTotalAmount(days * room.price);
                 else setTotalAmount(0);
             }
         }
     }, [selectedRoomId, checkIn, checkOut, rooms]);
 
-    async function handleSubmit(formData: FormData) {
+    const handleNext = () => {
+        if (step === 1 && (!guestName || !guestMobile)) {
+            toast.error("Please fill in guest details");
+            return;
+        }
+        if (step === 2 && (!selectedRoomId || !checkIn || !checkOut)) {
+            toast.error("Please select room and dates");
+            return;
+        }
+        setStep(s => s + 1);
+    };
+
+    const handleBack = () => setStep(s => s - 1);
+
+    async function handleSubmit() {
+        if (!idNumber || !idUrl) {
+            toast.error("Please provide ID details");
+            return;
+        }
+
         setLoading(true);
+        const formData = new FormData();
+        formData.append("guestName", guestName);
+        formData.append("guestMobile", guestMobile);
+        formData.append("guestEmail", guestEmail);
+        formData.append("idType", idType);
+        formData.append("idNumber", idNumber);
+        formData.append("idImage", idUrl);
+        formData.append("roomId", selectedRoomId);
+        formData.append("checkIn", checkIn);
+        formData.append("checkOut", checkOut);
+        formData.append("totalAmount", totalAmount.toString());
+        formData.append("advanceAmount", advance.toString());
+        formData.append("paymentMode", paymentMode);
+
         const res = await createBooking(formData);
         setLoading(false);
-        if (res?.error) alert(res.error);
-        else window.location.href = "/dashboard/bookings";
+
+        if (res?.error) {
+            toast.error(res.error);
+        } else {
+            toast.success("Booking created successfully");
+            setTimeout(() => {
+                window.location.href = "/dashboard/bookings";
+            }, 800);
+        }
     }
 
-    return (
-        <div className="max-w-5xl mx-auto space-y-10 pb-20 font-inter">
+    const selectedRoom = rooms.find(r => r.id === selectedRoomId);
+    const nights = checkIn && checkOut ? Math.ceil(Math.abs(new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-            {/* 1. ENGINE HEADER */}
-            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 font-outfit">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-slate-900/20">
-                            <Zap className="h-8 w-8 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">Stay Provisioning</h1>
-                            <div className="flex items-center gap-2 mt-2">
-                                <Badge className="bg-blue-50 text-blue-600 border-none font-bold uppercase tracking-widest text-[9px] px-2 py-0.5">Real-time Activation</Badge>
-                                <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest ml-1 flex items-center gap-1 font-inter">
-                                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Identity verification protocol active
-                                </span>
-                            </div>
-                        </div>
+    return (
+        <div className="max-w-6xl mx-auto pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                    <Link href="/dashboard/bookings">
+                        <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-10 w-10 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white">New Booking</h1>
+                        <p className="text-sm text-slate-400 mt-1">Step {step} of 3</p>
                     </div>
-                    <div className="flex flex-col items-end">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Provisioning Node</p>
-                        <p className="text-sm font-black text-slate-900 font-outfit uppercase tracking-tight">System Portal v4.2</p>
-                    </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="flex items-center gap-2">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className={cn(
+                            "h-2 w-16 rounded-full transition-all",
+                            step >= i ? "bg-[#a1f554]" : "bg-white/10"
+                        )} />
+                    ))}
                 </div>
             </div>
 
-            <form action={handleSubmit} className="space-y-10">
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-                    {/* LEFT COLUMN: GUEST & IDENTITY */}
-                    <div className="lg:col-span-2 space-y-10">
-
-                        {/* 1. PERSONNEL IDENTITY */}
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-                            <div className="bg-slate-900 p-8 text-white">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 border border-white/10">
-                                        <User className="h-5 w-5" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Form Steps */}
+                <div className="lg:col-span-8 space-y-6">
+                    <AnimatePresence mode="wait">
+                        {/* Step 1: Guest Details */}
+                        {step === 1 && (
+                            <motion.div
+                                key="step1"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="bg-[#0f110d] rounded-2xl border border-white/10 p-6 md:p-8"
+                            >
+                                <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+                                    <div className="h-10 w-10 rounded-xl bg-[#a1f554]/10 flex items-center justify-center border border-[#a1f554]/20">
+                                        <User className="h-5 w-5 text-[#a1f554]" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black font-outfit uppercase tracking-tight">Personnel Identity</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Guest demographic & registry data</p>
+                                        <h2 className="text-lg font-bold text-white">Guest Information</h2>
+                                        <p className="text-xs text-slate-400">Enter guest details</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-10 space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Legal Name</Label>
-                                        <div className="relative group">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
-                                            <Input name="guestName" placeholder="e.g. Rahul Sharma" required className="h-14 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-blue-500 transition-all font-bold text-slate-700" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Mobile Terminal</Label>
-                                        <div className="relative group">
-                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
-                                            <Input name="guestMobile" placeholder="e.g. 98765 43210" required className="h-14 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-blue-500 transition-all font-bold text-slate-700" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Communication Endpoint (Optional)</Label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
-                                        <Input name="guestEmail" placeholder="e.g. rahul@corporate.com" className="h-14 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-blue-500 transition-all font-bold text-slate-700" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* 2. IDENTITY SCAN */}
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-                            <div className="bg-slate-900 p-8 text-white">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center text-orange-400 border border-white/10">
-                                        <ShieldCheck className="h-5 w-5" />
+                                <div className="space-y-6">
+                                    {/* Guest Name */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="guestName" className="text-sm font-semibold text-white">
+                                            Full Name *
+                                        </Label>
+                                        <Input
+                                            id="guestName"
+                                            value={guestName}
+                                            onChange={(e) => setGuestName(e.target.value)}
+                                            placeholder="John Doe"
+                                            className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Phone */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="guestMobile" className="text-sm font-semibold text-white">
+                                                Phone Number *
+                                            </Label>
+                                            <Input
+                                                id="guestMobile"
+                                                value={guestMobile}
+                                                onChange={(e) => setGuestMobile(e.target.value)}
+                                                placeholder="+91 98765 43210"
+                                                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* Email */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="guestEmail" className="text-sm font-semibold text-white">
+                                                Email (Optional)
+                                            </Label>
+                                            <Input
+                                                id="guestEmail"
+                                                type="email"
+                                                value={guestEmail}
+                                                onChange={(e) => setGuestEmail(e.target.value)}
+                                                placeholder="john@example.com"
+                                                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8">
+                                    <Button 
+                                        onClick={handleNext} 
+                                        className="w-full h-12 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold"
+                                    >
+                                        Next: Room & Dates
+                                        <ChevronRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Step 2: Room & Dates */}
+                        {step === 2 && (
+                            <motion.div
+                                key="step2"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="bg-[#0f110d] rounded-2xl border border-white/10 p-6 md:p-8"
+                            >
+                                <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+                                    <div className="h-10 w-10 rounded-xl bg-[#a1f554]/10 flex items-center justify-center border border-[#a1f554]/20">
+                                        <DoorOpen className="h-5 w-5 text-[#a1f554]" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black font-outfit uppercase tracking-tight">Identity Scan</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Official government documentation</p>
+                                        <h2 className="text-lg font-bold text-white">Room & Dates</h2>
+                                        <p className="text-xs text-slate-400">Select room and booking dates</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-10 space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                    <div className="space-y-6">
-                                        <div className="space-y-3">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Credential Type</Label>
-                                            <div className="relative group">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    {idType === 'AADHAR' ? <Icons.Aadhar /> : idType === 'PASSPORT' ? <Icons.Passport /> : <Icons.User />}
-                                                </div>
-                                                <select
-                                                    name="idType"
-                                                    className="h-14 w-full pl-12 rounded-2xl border border-slate-200 bg-slate-50 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all appearance-none cursor-pointer"
-                                                    onChange={(e) => setIdType(e.target.value)}
-                                                >
-                                                    <option value="AADHAR">Aadhar Card</option>
-                                                    <option value="PASSPORT">Passport</option>
-                                                    <option value="DL">Driving License</option>
-                                                    <option value="VOTER_ID">Voter Identification</option>
-                                                </select>
-                                            </div>
+
+                                <div className="space-y-6">
+                                    {/* Room Selection */}
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-semibold text-white">Select Room *</Label>
+                                        <Select onValueChange={setSelectedRoomId} value={selectedRoomId}>
+                                            <SelectTrigger className="h-12 rounded-xl border-white/10 bg-white/5 focus:ring-1 focus:ring-[#a1f554]/30 text-white">
+                                                <SelectValue placeholder="Choose a room" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-white/10 bg-[#0f110d] text-white">
+                                                {rooms.map(room => (
+                                                    <SelectItem key={room.id} value={room.id} className="focus:bg-white/10">
+                                                        Room {room.number} - {room.type.replace('_', ' ')} - ₹{room.price}/night
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Check-in Date */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="checkIn" className="text-sm font-semibold text-white">
+                                                Check-in Date *
+                                            </Label>
+                                            <Input
+                                                id="checkIn"
+                                                type="date"
+                                                value={checkIn}
+                                                onChange={(e) => setCheckIn(e.target.value)}
+                                                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                                required
+                                            />
                                         </div>
-                                        <div className="space-y-3">
-                                            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Credential ID</Label>
-                                            <div className="relative group">
-                                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-orange-500 transition-colors" />
-                                                <Input
-                                                    name="idNumber"
-                                                    placeholder={idType === 'AADHAR' ? "XXXX XXXX XXXX" : "Input identification number"}
-                                                    className="h-14 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-orange-500 transition-all font-bold text-slate-700"
-                                                    required
-                                                />
-                                            </div>
+
+                                        {/* Check-out Date */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="checkOut" className="text-sm font-semibold text-white">
+                                                Check-out Date *
+                                            </Label>
+                                            <Input
+                                                id="checkOut"
+                                                type="date"
+                                                value={checkOut}
+                                                onChange={(e) => setCheckOut(e.target.value)}
+                                                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 mt-8">
+                                    <Button 
+                                        onClick={handleBack}
+                                        variant="outline"
+                                        className="h-12 px-6 border-white/10 bg-transparent hover:bg-white/5 text-white rounded-xl"
+                                    >
+                                        <ArrowLeft className="h-4 w-4 mr-2" />
+                                        Back
+                                    </Button>
+                                    <Button 
+                                        onClick={handleNext}
+                                        className="flex-1 h-12 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold"
+                                    >
+                                        Next: Payment & ID
+                                        <ChevronRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Step 3: Payment & ID */}
+                        {step === 3 && (
+                            <motion.div
+                                key="step3"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="bg-[#0f110d] rounded-2xl border border-white/10 p-6 md:p-8"
+                            >
+                                <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+                                    <div className="h-10 w-10 rounded-xl bg-[#a1f554]/10 flex items-center justify-center border border-[#a1f554]/20">
+                                        <CheckCircle2 className="h-5 w-5 text-[#a1f554]" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-white">Payment & Verification</h2>
+                                        <p className="text-xs text-slate-400">Complete booking details</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* ID Details */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-semibold text-white">ID Type *</Label>
+                                            <Select onValueChange={setIdType} value={idType}>
+                                                <SelectTrigger className="h-12 rounded-xl border-white/10 bg-white/5 focus:ring-1 focus:ring-[#a1f554]/30 text-white">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-xl border-white/10 bg-[#0f110d] text-white">
+                                                    <SelectItem value="AADHAR">Aadhar Card</SelectItem>
+                                                    <SelectItem value="PASSPORT">Passport</SelectItem>
+                                                    <SelectItem value="DL">Driving License</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="idNumber" className="text-sm font-semibold text-white">
+                                                ID Number *
+                                            </Label>
+                                            <Input
+                                                id="idNumber"
+                                                value={idNumber}
+                                                onChange={(e) => setIdNumber(e.target.value)}
+                                                placeholder="Enter ID number"
+                                                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                                required
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Physical Scan (Front Side)</Label>
-                                        <input type="hidden" name="idImage" value={idUrl} />
-                                        <div className="border-2 border-dashed border-slate-200 rounded-[2rem] p-4 bg-slate-50 hover:bg-white hover:border-orange-300 transition-all group shadow-inner">
+                                    {/* ID Upload */}
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-semibold text-white">Upload ID Photo *</Label>
+                                        <div className="border-2 border-dashed border-white/10 rounded-xl p-6 bg-white/5">
                                             <ImageUpload
                                                 value={idUrl ? [idUrl] : []}
                                                 onChange={(url) => setIdUrl(url)}
                                                 onRemove={() => setIdUrl("")}
-                                            />
-                                            {!idUrl && (
-                                                <p className="text-[8px] text-center text-slate-400 mt-4 font-black uppercase tracking-widest italic group-hover:text-orange-500 transition-colors">
-                                                    Place credential within visual aperture
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COLUMN: STAY & FISCAL VITALS */}
-                    <div className="space-y-10">
-
-                        {/* 3. STAY CONFIGURATION */}
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-                            <div className="bg-slate-900 p-8 text-white">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center text-emerald-400 border border-white/10">
-                                        <Clock className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black font-outfit uppercase tracking-tight">Stay Vitals</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Temporal occupancy metrics</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-8 space-y-6">
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Asset Allocation</Label>
-                                    <div className="relative group">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300 group-focus-within:text-emerald-500 transition-colors">
-                                            <Building2 className="h-5 w-5" />
-                                        </div>
-                                        <select
-                                            name="roomId"
-                                            className="h-14 w-full pl-12 rounded-2xl border border-slate-200 bg-slate-50 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer"
-                                            onChange={(e) => setSelectedRoomId(e.target.value)}
-                                            required
-                                        >
-                                            <option value="">Choose Registry Node</option>
-                                            {rooms.map(room => (
-                                                <option key={room.id} value={room.id}>
-                                                    Room {room.number} — {room.type} (₹{room.price})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Check-In Node</Label>
-                                        <Input type="date" name="checkIn" className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 px-6 focus:bg-white focus:ring-emerald-500 transition-all" onChange={(e) => setCheckIn(e.target.value)} required />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Check-Out Node</Label>
-                                        <Input type="date" name="checkOut" className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 px-6 focus:bg-white focus:ring-emerald-500 transition-all" onChange={(e) => setCheckOut(e.target.value)} required />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 4. FISCAL SETTLEMENT */}
-                        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-                            <div className="relative z-10 space-y-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 border border-white/5">
-                                        <CreditCard className="h-6 w-6" />
-                                    </div>
-                                    <h3 className="text-xl font-black font-outfit uppercase tracking-tight">Fiscal Settlement</h3>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-sm">
-                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Liability</p>
-                                        <p className="text-4xl font-black font-outfit text-white mt-1 uppercase tracking-tight">₹{totalAmount.toLocaleString()}</p>
-                                        <input type="hidden" name="totalAmount" value={totalAmount} />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Advance Provision</Label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-focus-within:text-white transition-colors">
-                                                <IndianRupee className="h-5 w-5" />
-                                            </div>
-                                            <Input
-                                                name="advanceAmount"
-                                                type="number"
-                                                placeholder="0.00"
-                                                className="h-14 pl-12 rounded-2xl border-white/10 bg-white/5 focus:bg-white/10 focus:ring-blue-500 transition-all font-black text-white placeholder:text-slate-600"
-                                                onChange={(e) => setAdvance(parseFloat(e.target.value) || 0)}
+                                                label="Upload ID"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Payment Protocol</Label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                {paymentMode === 'CASH' ? <Icons.Cash /> : paymentMode === 'UPI' ? <Icons.UPI /> : <Icons.Card />}
+                                    {/* Payment Details */}
+                                    <div className="bg-white/5 p-6 rounded-xl border border-white/10 space-y-6">
+                                        <h3 className="text-sm font-semibold text-white mb-4">Payment Details</h3>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="advance" className="text-sm font-semibold text-white">
+                                                    Advance Amount
+                                                </Label>
+                                                <Input
+                                                    id="advance"
+                                                    type="number"
+                                                    value={advance}
+                                                    onChange={(e) => setAdvance(parseFloat(e.target.value) || 0)}
+                                                    placeholder="0"
+                                                    className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
+                                                />
                                             </div>
-                                            <select
-                                                name="paymentMode"
-                                                className="h-14 w-full pl-12 rounded-2xl border border-white/10 bg-white/5 font-black text-white outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/10 transition-all appearance-none cursor-pointer"
-                                                onChange={(e) => setPaymentMode(e.target.value)}
-                                            >
-                                                <option value="CASH" className="text-slate-900">Cash Currency</option>
-                                                <option value="UPI" className="text-slate-900">UPI Interface</option>
-                                                <option value="CARD" className="text-slate-900">Card Settlement</option>
-                                            </select>
+
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-semibold text-white">Payment Mode</Label>
+                                                <Select onValueChange={setPaymentMode} value={paymentMode}>
+                                                    <SelectTrigger className="h-12 rounded-xl border-white/10 bg-white/5 focus:ring-1 focus:ring-[#a1f554]/30 text-white">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-xl border-white/10 bg-[#0f110d] text-white">
+                                                        <SelectItem value="CASH">Cash</SelectItem>
+                                                        <SelectItem value="UPI">UPI</SelectItem>
+                                                        <SelectItem value="CARD">Card</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-white/5 flex flex-col items-center gap-2">
-                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest text-center italic leading-relaxed">
-                                        {totalAmount > 0 && advance < totalAmount ? "Guest maintains residual liability for checkout phase." : "Node provisioning fully funded."}
-                                    </p>
-                                    <div className="flex items-center gap-3 mt-2">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Residual</span>
-                                        <span className={cn("text-2xl font-black font-outfit tracking-tighter", totalAmount - advance > 0 ? "text-red-400" : "text-emerald-400")}>
-                                            ₹{(totalAmount - advance).toLocaleString()}
-                                        </span>
-                                    </div>
+                                <div className="flex gap-3 mt-8">
+                                    <Button 
+                                        onClick={handleBack}
+                                        variant="outline"
+                                        className="h-12 px-6 border-white/10 bg-transparent hover:bg-white/5 text-white rounded-xl"
+                                    >
+                                        <ArrowLeft className="h-4 w-4 mr-2" />
+                                        Back
+                                    </Button>
+                                    <Button 
+                                        onClick={handleSubmit}
+                                        className="flex-1 h-12 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold disabled:opacity-50"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                                Create Booking
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 5. ACTIVATION COMMAND */}
-                <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-slate-100 flex justify-center">
-                    <Button
-                        type="submit"
-                        className="w-full max-w-xl h-20 bg-slate-900 hover:bg-black text-white rounded-[1.5rem] font-black text-xl uppercase tracking-tighter transition-all shadow-2xl shadow-slate-900/40 group active:scale-[0.98]"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <><Loader2 className="animate-spin h-8 w-8 mr-4" /> Provisioning Stay Node...</>
-                        ) : (
-                            <div className="flex items-center justify-center gap-4">
-                                <CheckCircle2 className="h-8 w-8 group-hover:scale-110 transition-all" />
-                                Authorize Provisioning & Entry
-                                <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-all opacity-30" />
-                            </div>
+                            </motion.div>
                         )}
-                    </Button>
+                    </AnimatePresence>
                 </div>
 
-            </form>
-        </div>
-    );
-}
+                {/* Summary Sidebar */}
+                <div className="lg:col-span-4">
+                    <div className="bg-[#0f110d] rounded-2xl border border-white/10 p-6 sticky top-24">
+                        <h3 className="text-sm font-semibold text-white mb-6">Booking Summary</h3>
+                        
+                        <div className="space-y-4 mb-6">
+                            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                                <DoorOpen className="h-5 w-5 text-[#a1f554]" />
+                                <span className="text-sm text-white">
+                                    {selectedRoom ? `Room ${selectedRoom.number} - ${selectedRoom.type.replace('_', ' ')}` : 'No room selected'}
+                                </span>
+                            </div>
 
-function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-    return (
-        <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-black", className)}>
-            {children}
-        </span>
+                            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                                <Clock className="h-5 w-5 text-[#8ba4b8]" />
+                                <span className="text-sm text-white">
+                                    {nights > 0 ? `${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Select dates'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="h-px bg-white/10 my-6" />
+
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-400">Total Amount</span>
+                                <span className="text-white font-semibold">₹{totalAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-400">Advance</span>
+                                <span className="text-[#a1f554] font-semibold">₹{advance.toLocaleString()}</span>
+                            </div>
+                            <div className="h-px bg-white/10 my-3" />
+                            <div className="flex justify-between">
+                                <span className="text-sm font-semibold text-white">Balance Due</span>
+                                <span className={cn(
+                                    "text-lg font-bold",
+                                    totalAmount - advance > 0 ? "text-red-400" : "text-[#a1f554]"
+                                )}>
+                                    ₹{(totalAmount - advance).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 p-4 bg-[#a1f554]/10 rounded-xl border border-[#a1f554]/20">
+                            <p className="text-xs text-slate-300 text-center">
+                                All booking information is encrypted and secure
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

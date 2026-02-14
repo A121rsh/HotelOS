@@ -1,29 +1,30 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { NetworkStatus } from "@/components/ui/network-status";
 import {
   LayoutDashboard,
-  BedDouble,
   CalendarDays,
+  BedDouble,
   Users,
   Sparkles,
-  Settings,
-  LogOut,
   CheckSquare,
-  Menu,
-  X,
+  Globe,
   Users2,
-  Hotel,
-  ChevronRight,
+  Settings,
   PieChart,
+  Hotel,
   ShieldAlert,
-  Globe
+  ChevronRight,
+  LogOut,
+  X,
+  Menu
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface SidebarProps {
   hotelName?: string;
@@ -174,96 +175,100 @@ export default function Sidebar({
   const userInitial = session?.user?.name?.charAt(0)?.toUpperCase() || "U";
 
   const SidebarContent = () => (
-    <div className="h-full flex flex-col bg-slate-950 text-white font-inter">
-      {/* Header with Logo */}
-      <div className="p-6 mb-2">
-        <div className="flex items-center gap-3">
-          {hotelLogo ? (
-            <img
-              src={hotelLogo}
-              alt="Hotel Logo"
-              className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-800"
-            />
-          ) : (
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Hotel className="h-6 w-6 text-white" />
-            </div>
-          )}
+    <div className="h-full flex flex-col bg-[#09090b] text-white font-inter border-r border-white/5 relative overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#b5f347]/5 to-transparent" />
+      </div>
 
+      {/* Header with Logo */}
+      <div className="p-8 mb-2 relative z-10">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="bg-[#b5f347] p-2 rounded-xl shadow-[0_0_20px_rgba(181,243,71,0.2)] group-hover:rotate-12 transition-transform duration-500">
+            <Hotel className="h-5 w-5 text-black" />
+          </div>
           <div className="min-w-0">
-            <h1 className="font-bold text-lg leading-tight font-outfit truncate">
-              {hotelName}
+            <h1 className="text-xl font-black font-outfit text-white tracking-tight uppercase italic-none">
+              Hotel<span className="text-[#b5f347]">OS</span>
             </h1>
-            <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                Property Live
+            <div className="flex items-center gap-1.5 opacity-60">
+              <div className="h-1 w-1 rounded-full bg-[#b5f347] animate-pulse" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-[0.2em] leading-none">
+                {hotelName}
               </span>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Lock Alert if active */}
       {isLocked && (
-        <div className="mx-4 mb-4 p-3 bg-red-950/30 border border-red-900/50 rounded-xl flex items-center gap-3 animate-pulse">
+        <div className="mx-6 mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 animate-pulse">
           <ShieldAlert className="h-5 w-5 text-red-500 shrink-0" />
           <div className="min-w-0">
-            <p className="text-[10px] font-bold text-red-400 uppercase">Access Restricted</p>
-            <p className="text-[9px] text-red-500/80 truncate">Renew plan to unlock features</p>
+            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Access Restricted</p>
+            <p className="text-[9px] text-red-400/60 truncate">Renew plan to unlock features</p>
           </div>
         </div>
       )}
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1 overflow-y-auto scrollbar-hide">
-        <p className="px-3 mb-2 text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">Management</p>
-        {filteredRoutes.map((route) => {
-          const isActive = pathname === route.href || pathname.startsWith(route.href + "/");
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto scrollbar-hide relative z-10 w-full">
+        <div className="px-4 mb-4 flex items-center justify-between opacity-40">
+          <p className="text-[9px] font-black text-white uppercase tracking-[0.3em]">Command Menu</p>
+          <div className="h-px bg-white/20 flex-1 ml-4" />
+        </div>
 
-          return (
-            <Link
-              key={route.href}
-              href={route.href}
-              className={cn(
-                "group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-300 relative",
-                isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
-              )}
-            >
-              <route.icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-500 group-hover:text-blue-400")} />
-              <span>{route.label}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
-                />
-              )}
-              <ChevronRight className={cn("ml-auto h-4 w-4 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0", isActive ? "hidden" : "block")} />
-            </Link>
-          );
-        })}
+        <ul className="space-y-1">
+          <AnimatePresence mode="wait">
+            {filteredRoutes.map((route) => {
+              const isActive = pathname === route.href || pathname.startsWith(route.href + "/");
+
+              return (
+                <li key={route.href}>
+                  <Link
+                    href={route.href}
+                    className={cn(
+                      "group relative flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all duration-300 rounded-xl overflow-hidden",
+                      isActive
+                        ? "text-[#b5f347] bg-[#b5f347]/10 backdrop-blur-md border border-[#b5f347]/20 shadow-[0_0_20px_rgba(181,243,71,0.05)]"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <route.icon className={cn(
+                      "h-3.5 w-3.5 shrink-0 transition-transform duration-300",
+                      isActive ? "scale-110" : "group-hover:scale-110"
+                    )} />
+                    <span className="tracking-wide text-[11px] uppercase font-black">{route.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </AnimatePresence>
+        </ul>
       </nav>
 
       {/* Footer / User Profile */}
-      <div className="p-4 mt-auto">
-        <div className="bg-slate-900/50 border border-slate-800/50 rounded-[2rem] p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-black shadow-lg">
+      <div className="mt-auto p-4 mx-4 mb-4 rounded-3xl bg-[#111] border border-white/5 relative overflow-hidden group">
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-[#b5f347]/10 flex items-center justify-center border border-[#b5f347]/20 text-[#b5f347]">
               {userInitial}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold truncate leading-none mb-1">{session?.user?.name || "Member"}</p>
-              <p className="text-[10px] text-slate-500 truncate">{session?.user?.email}</p>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black text-white uppercase tracking-wider truncate">{session?.user?.name?.split(" ")[0]}</p>
+              <div className="flex items-center gap-1.5 opacity-50">
+                <div className="h-1 w-1 rounded-full bg-[#b5f347]" />
+                <p className="text-[8px] font-bold uppercase tracking-widest text-[#b5f347]">Online</p>
+              </div>
             </div>
           </div>
+
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/20"
+            className="h-8 w-8 rounded-full flex items-center justify-center text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-all"
+            title="Disconnect"
           >
             <LogOut className="h-4 w-4" />
-            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -272,22 +277,17 @@ export default function Sidebar({
 
   return (
     <>
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-
       {/* Mobile Toggle */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 z-40 md:hidden">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg shadow-lg">
-            <Hotel className="h-5 w-5 text-white" />
+      <div className="fixed top-0 left-0 right-0 h-16 bg-[#09090b]/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 z-40 md:hidden">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#b5f347] p-1.5 rounded-lg shadow-[0_0_15px_rgba(181,243,71,0.3)]">
+            <Hotel className="h-4 w-4 text-black" />
           </div>
-          <span className="font-black font-outfit text-slate-900 tracking-tight italic">HotelOS</span>
+          <span className="font-black font-outfit text-white tracking-tight uppercase">Hotel<span className="text-[#b5f347]">OS</span></span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 active:scale-95 transition-transform"
+          className="h-10 w-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white active:scale-95 transition-transform"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -301,7 +301,7 @@ export default function Sidebar({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
@@ -309,7 +309,7 @@ export default function Sidebar({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 z-50 h-screen w-72 md:hidden overflow-hidden shadow-2xl"
+              className="fixed left-0 top-0 z-50 h-screen w-72 md:hidden overflow-hidden shadow-2xl border-r border-[#b5f347]/20"
             >
               <SidebarContent />
             </motion.aside>
@@ -318,12 +318,12 @@ export default function Sidebar({
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block fixed left-0 top-0 z-40 h-screen w-72 border-r border-slate-100 bg-white">
+      <aside className="hidden md:block fixed left-0 top-0 z-40 h-screen w-72 border-r border-white/5 bg-[#09090b]">
         <SidebarContent />
       </aside>
 
       {/* Spacer */}
-      <div className="hidden md:block w-72 shrink-0" />
+      <div className="hidden md:block w-72 shrink-0 bg-[#09090b]" />
     </>
   );
 }

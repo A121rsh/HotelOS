@@ -71,6 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: '/login',
+    signOut: '/signout',
   },
   callbacks: {
     // ✅ JWT Callback: Jab token banega, tab database se role utha kar token me daalenge

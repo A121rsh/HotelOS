@@ -19,9 +19,8 @@ export default async function AdminLayout({
 
   const hotel = await getHotelByUserId(session.user.id as string);
 
-  // 🔄 State Recovery: Send only OWNERS without establishments to onboarding
-  if (!hotel && (session.user as any).role === "OWNER") {
-    redirect("/onboarding");
+  if (session.user.role === "OWNER" && !hotel) {
+    redirect("/register");
   }
 
   // 🛑 Security Protocol: If no establishment found for other roles, logout
@@ -61,7 +60,7 @@ export default async function AdminLayout({
         blockedFeatures={hotel.blockedFeatures}
         hasActivePlan={!!hasActivePlan}
       />
-      <main className="flex-1 overflow-y-auto bg-slate-50 p-4 pt-20 md:pt-4">
+      <main className="flex-1 overflow-y-auto bg-[#0a0a0a] p-4 pt-20 md:pt-4">
         <AccessGuard
           isLocked={isLocked}
           isBlocked={!hotel.isActive}

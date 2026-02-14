@@ -57,56 +57,60 @@ export default function AddPaymentModal({ bookingId, dueAmount }: AddPaymentModa
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="relative flex cursor-pointer select-none items-center rounded-xl px-3 py-2 text-sm outline-none transition-all hover:bg-slate-100 hover:text-slate-900 w-full group">
-                    <IndianRupee className="mr-3 h-4 w-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                    <span className="font-bold text-slate-600 group-hover:text-slate-900">Record Settlement</span>
+                <div className="relative flex cursor-pointer select-none items-center rounded-xl px-3 py-2 text-sm outline-none transition-all hover:bg-white/5 hover:text-[#a1f554] w-full group">
+                    <IndianRupee className="mr-3 h-4 w-4 text-[#a1f554] group-hover:scale-110 transition-transform" />
+                    <span className="font-bold text-white/60 group-hover:text-white">Record Settlement</span>
                 </div>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-xl p-0 rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl font-inter focus:outline-none overflow-hidden text-slate-900">
+            <DialogContent className="sm:max-w-xl p-0 rounded-[2.5rem] border border-white/10 bg-[#0a0a0a] shadow-[0_0_100px_rgba(161,245,84,0.05)] font-inter focus:outline-none overflow-hidden text-white selection:bg-[#a1f554] selection:text-black">
                 <div className="max-h-[92vh] overflow-y-auto">
-                    {/* Radix Accessibility Requirements */}
                     <DialogTitle className="sr-only">Record Fiscal Settlement</DialogTitle>
                     <DialogDescription className="sr-only">Record a new payment for this booking by specifying the amount and payment protocol.</DialogDescription>
 
                     {/* 1. FISCAL PROTOCOL HEADER */}
-                    <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
-                        <div className="relative z-10 flex items-center gap-5">
-                            <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-emerald-400 border border-white/10">
-                                <IndianRupee className="h-6 w-6" />
+                    <div className="bg-[#0f110d] p-10 relative overflow-hidden border-b border-white/5">
+                        <div className="relative z-10 flex items-center gap-6">
+                            <div className="h-14 w-14 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center text-[#a1f554] border border-[#a1f554]/20 shadow-[0_0_20px_rgba(161,245,84,0.1)]">
+                                <IndianRupee className="h-7 w-7" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black font-outfit uppercase tracking-tight leading-none">Fiscal Settlement</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
-                                    <ShieldCheck className="h-3 w-3 text-emerald-500" /> Secure Transaction Node v4.0
+                                <h2 className="text-2xl font-black font-outfit uppercase tracking-tight leading-none">Fiscal Settlement</h2>
+                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mt-3 flex items-center gap-2">
+                                    <ShieldCheck className="h-3.5 w-3.5 text-[#a1f554]" /> Secure Transaction Node v4.0
                                 </p>
                             </div>
                         </div>
-                        <Building2 className="absolute -bottom-10 -right-10 h-40 w-40 text-white/5 pointer-events-none" />
+                        {/* Background Decoration */}
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#a1f554]/5 rounded-full blur-[60px]" />
+                        <Building2 className="absolute -bottom-10 -right-10 h-48 w-48 text-white/[0.02] pointer-events-none" />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-10 space-y-8">
+                    <form onSubmit={handleSubmit} className="p-10 space-y-10">
                         {/* 2. LIABILITY READOUT */}
-                        <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-inner flex justify-between items-center">
+                        <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 shadow-inner backdrop-blur-sm group hover:border-white/10 transition-all flex justify-between items-center">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Residual Liability</p>
-                                <p className="text-3xl font-black font-outfit text-red-600 tracking-tight mt-1">₹{dueAmount.toLocaleString()}</p>
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] leading-none">Residual Liability</p>
+                                <p className="text-3xl font-black font-outfit text-red-500 mt-3 tracking-tight">₹{dueAmount.toLocaleString()}</p>
                             </div>
-                            <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm">
-                                <DollarSign className="h-6 w-6" />
+                            <div className="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 border border-white/5 shadow-sm group-hover:text-red-500 group-hover:border-red-500/20 transition-all">
+                                <DollarSign className="h-7 w-7" />
                             </div>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {/* 3. SETTLEMENT AMOUNT */}
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Settlement Provision</Label>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-[#a1f554] shadow-[0_0_10px_rgba(161,245,84,1)] animate-pulse" />
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 ml-1">Settlement Provision</Label>
+                                </div>
                                 <div className="relative group">
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                                    <IndianRupee className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-white/20 group-focus-within:text-[#a1f554] transition-colors" />
                                     <Input
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
-                                        className="h-16 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-emerald-500 transition-all font-black text-2xl text-slate-900"
+                                        className="h-20 pl-16 rounded-[1.5rem] border-white/5 bg-white/5 focus:bg-white/10 focus:ring-[#a1f554] focus:border-[#a1f554]/30 transition-all font-black text-3xl text-white placeholder:text-white/10"
                                         type="number"
                                         max={dueAmount}
                                     />
@@ -114,13 +118,16 @@ export default function AddPaymentModal({ bookingId, dueAmount }: AddPaymentModa
                             </div>
 
                             {/* 4. PAYMENT PROTOCOL */}
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Payment Protocol</Label>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-[#a1f554] shadow-[0_0_10px_rgba(161,245,84,1)] animate-pulse" />
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 ml-1">Payment Protocol</Label>
+                                </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     {[
-                                        { id: "CASH", label: "Cash", icon: IndianRupee, color: "emerald" },
-                                        { id: "UPI", label: "UPI", icon: Zap, color: "blue" },
-                                        { id: "CARD", label: "Card", icon: CreditCard, color: "indigo" }
+                                        { id: "CASH", label: "Cash", icon: IndianRupee, color: "#a1f554" },
+                                        { id: "UPI", label: "UPI", icon: Zap, color: "#3b82f6" },
+                                        { id: "CARD", label: "Card", icon: CreditCard, color: "#8b5cf6" }
                                     ].map((item) => {
                                         const active = mode === item.id;
                                         return (
@@ -128,25 +135,25 @@ export default function AddPaymentModal({ bookingId, dueAmount }: AddPaymentModa
                                                 key={item.id}
                                                 onClick={() => setMode(item.id as any)}
                                                 className={cn(
-                                                    "relative p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center gap-2 group",
+                                                    "relative p-6 rounded-[1.5rem] border transition-all cursor-pointer flex flex-col items-center gap-3 group hover:scale-[1.02] active:scale-[0.98]",
                                                     active
-                                                        ? `bg-${item.color}-50 border-${item.color}-200 shadow-sm`
-                                                        : "bg-slate-50 border-slate-100 hover:bg-white hover:border-slate-300"
+                                                        ? "bg-white/10 border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+                                                        : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10"
                                                 )}
                                             >
                                                 <div className={cn(
-                                                    "h-10 w-10 rounded-xl flex items-center justify-center transition-all",
-                                                    active ? `bg-white text-${item.color}-600 shadow-sm` : "bg-white text-slate-300 group-hover:text-slate-500 shadow-sm"
+                                                    "h-12 w-12 rounded-xl flex items-center justify-center transition-all",
+                                                    active ? "bg-[#a1f554] text-black shadow-[0_0_20px_rgba(161,245,84,0.2)]" : "bg-white/5 text-white/20 group-hover:text-white/40 border border-white/5"
                                                 )}>
-                                                    <item.icon className="h-5 w-5" />
+                                                    <item.icon className="h-6 w-6" />
                                                 </div>
                                                 <span className={cn(
-                                                    "text-[10px] font-black uppercase tracking-widest",
-                                                    active ? `text-${item.color}-700` : "text-slate-900"
+                                                    "text-[10px] font-black uppercase tracking-[0.2em]",
+                                                    active ? "text-[#a1f554]" : "text-white/40 group-hover:text-white/60"
                                                 )}>{item.label}</span>
                                                 {active && (
-                                                    <div className={cn("absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-white border border shadow-sm flex items-center justify-center", `text-${item.color}-600 border-${item.color}-200`)}>
-                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                    <div className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-[#a1f554] text-black flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                                                        <CheckCircle2 className="h-4 w-4" />
                                                     </div>
                                                 )}
                                             </div>
@@ -159,15 +166,15 @@ export default function AddPaymentModal({ bookingId, dueAmount }: AddPaymentModa
                         {/* 5. COMMAND FOOTER */}
                         <Button
                             type="submit"
-                            className="w-full h-16 bg-slate-900 border-none hover:bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-slate-900/20 group"
+                            className="w-full h-18 bg-[#a1f554] hover:bg-[#b4f876] text-black rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_20px_40px_rgba(161,245,84,0.15)] group active:scale-[0.98] border-none"
                             disabled={loading || parseFloat(amount) <= 0}
                         >
                             {loading ? (
-                                <><Loader2 className="animate-spin h-5 w-5 mr-3" /> Processing Fiscal Node...</>
+                                <><Loader2 className="animate-spin h-5 w-5 mr-3" /> Syncing Fiscal Node...</>
                             ) : (
-                                <div className="flex items-center justify-center gap-3">
-                                    <ShieldCheck className="h-5 w-5 group-hover:scale-110 transition-transform text-emerald-500" />
-                                    Authorize Transaction & Sync
+                                <div className="flex items-center justify-center gap-4">
+                                    <ShieldCheck className="h-5 w-5 group-hover:scale-125 transition-transform" />
+                                    Authorize & Push Transaction
                                     <ArrowRight className="h-4 w-4 opacity-30 group-hover:translate-x-2 transition-all" />
                                 </div>
                             )}

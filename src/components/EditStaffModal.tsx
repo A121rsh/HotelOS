@@ -18,12 +18,11 @@ import {
     ShieldCheck,
     User,
     Shield,
-    Zap,
-    Building2,
-    ChevronRight,
     CheckCircle2,
-    Pencil
+    Pencil,
+    X
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { FEATURE_LIST } from "@/lib/constants";
 
 interface EditStaffModalProps {
@@ -55,81 +54,99 @@ export default function EditStaffModal({ staff }: EditStaffModalProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-10 px-4 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 font-black text-[9px] uppercase tracking-widest transition-all">
-                    <Pencil className="h-3 w-3 mr-2" /> Modify Access
+                <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                    title="Edit staff member"
+                >
+                    <Pencil className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-2xl p-0 rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl font-inter focus:outline-none overflow-hidden text-slate-900">
-                <div className="max-h-[92vh] overflow-y-auto">
-                    {/* Radix Accessibility Requirements */}
-                    <DialogTitle className="sr-only">Modify Staff Authority</DialogTitle>
-                    <DialogDescription className="sr-only">Update attributes and feature provisioning for this manager node.</DialogDescription>
+            <DialogContent className="sm:max-w-2xl p-0 bg-[#0f110d] border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh]">
+                <button
+                    onClick={() => setOpen(false)}
+                    className="absolute right-6 top-6 z-50 rounded-full p-2 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                    <X className="h-5 w-5" />
+                </button>
 
-                    {/* 1. EXECUTIVE MODIFICATION HEADER */}
-                    <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
-                        <div className="relative z-10 flex items-center gap-5">
-                            <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 border border-white/10">
-                                <ShieldCheck className="h-6 w-6" />
+                <div className="max-h-[85vh] overflow-y-auto">
+                    <DialogTitle className="sr-only">Edit Staff Member</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Update staff member information and permissions.
+                    </DialogDescription>
+
+                    {/* Header */}
+                    <div className="bg-gradient-to-br from-black to-[#0f110d] p-6 md:p-8 relative overflow-hidden border-b border-white/5">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-[#a1f554] rounded-full blur-[120px] opacity-10" />
+                        
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="h-14 w-14 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center text-[#a1f554] border border-[#a1f554]/20">
+                                <Pencil className="h-7 w-7" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black font-outfit uppercase tracking-tight leading-none">Authority Modification</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
-                                    <Shield className="h-3 w-3 text-blue-500" /> System ID: <span className="text-white">{staff.id.slice(-8).toUpperCase()}</span>
-                                </p>
+                                <h2 className="text-xl md:text-2xl font-bold text-white">Edit Staff Member</h2>
+                                <p className="text-xs text-slate-400 mt-1">Update member information</p>
                             </div>
                         </div>
-                        <Building2 className="absolute -bottom-10 -right-10 h-40 w-40 text-white/5 pointer-events-none" />
                     </div>
 
-                    <form action={handleSubmit} className="p-8 space-y-8">
+                    <form action={handleSubmit} className="p-6 md:p-8 space-y-6 md:space-y-8">
                         <input type="hidden" name="staffId" value={staff.id} />
 
-                        {/* 2. IDENTITY SECTOR */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-blue-600" />
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Personnel Identity</Label>
-                            </div>
+                        {/* Basic Info */}
+                        <div className="space-y-4">
+                            <Label className="text-sm font-semibold text-white flex items-center gap-2">
+                                <User className="h-4 w-4 text-[#a1f554]" />
+                                Basic Information
+                            </Label>
 
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Legal Name</Label>
-                                <div className="relative group">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
-                                    <Input
-                                        name="name"
-                                        defaultValue={staff.name || ""}
-                                        className="h-14 pl-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-blue-500 transition-all font-bold text-slate-700 placeholder:text-slate-300"
-                                        required
-                                    />
-                                </div>
+                                <Label htmlFor="name" className="text-xs text-slate-400">
+                                    Full Name
+                                </Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={staff.name || ""}
+                                    className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 transition-all text-white placeholder:text-slate-500"
+                                    required
+                                />
                             </div>
 
-                            <p className="text-[10px] text-slate-400 font-bold ml-1 italic">Network email reconfiguration is restricted to Root level only.</p>
+                            <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                                <p className="text-xs text-slate-400 flex items-center gap-2">
+                                    <Shield className="h-3.5 w-3.5 text-[#8ba4b8]" />
+                                    Email: <span className="text-white font-medium">{staff.email}</span>
+                                </p>
+                                <p className="text-xs text-slate-500 mt-1 ml-6">Email cannot be changed</p>
+                            </div>
                         </div>
 
-                        {/* 3. AUTHORITY DELEGATION SECTOR */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <Zap className="h-4 w-4 text-amber-500" />
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Digital Access Re-Provisioning</Label>
-                            </div>
+                        {/* Permissions */}
+                        <div className="space-y-4">
+                            <Label className="text-sm font-semibold text-white flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-[#8ba4b8]" />
+                                Permissions
+                            </Label>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {FEATURE_LIST.map((feature) => (
                                     <label
                                         key={feature.id}
-                                        className="group relative flex items-center p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-blue-500 hover:bg-white transition-all cursor-pointer has-[:checked]:bg-blue-50/50 has-[:checked]:border-blue-500"
+                                        className="group relative flex items-center p-3 md:p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#a1f554]/30 hover:bg-white/10 transition-all cursor-pointer has-[:checked]:bg-[#a1f554]/10 has-[:checked]:border-[#a1f554]/50"
                                     >
-                                        <div className="flex items-center gap-4 w-full">
-                                            <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors shadow-sm">
-                                                <feature.icon className="h-5 w-5" />
+                                        <div className="flex items-center gap-3 w-full">
+                                            <div className="h-9 w-9 flex-shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-[#a1f554] transition-colors">
+                                                <feature.icon className="h-4 w-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[11px] font-black uppercase text-slate-700 leading-none">{feature.label}</p>
-                                                <p className="text-[8.5px] text-slate-400 font-bold mt-1 leading-tight">{feature.description}</p>
+                                                <p className="text-sm font-semibold text-white leading-none">{feature.label}</p>
+                                                <p className="text-xs text-slate-400 mt-1 leading-tight">{feature.description}</p>
                                             </div>
-                                            <div className="relative flex items-center justify-center h-5 w-5 rounded-lg border-2 border-slate-200 bg-white group-hover:border-blue-400 transition-all overflow-hidden shrink-0">
+                                            <div className="relative flex items-center justify-center h-5 w-5 rounded-md border-2 border-white/20 bg-white/5 group-hover:border-[#a1f554]/50 transition-all overflow-hidden shrink-0">
                                                 <input
                                                     type="checkbox"
                                                     name="permissions"
@@ -137,8 +154,8 @@ export default function EditStaffModal({ staff }: EditStaffModalProps) {
                                                     className="peer sr-only"
                                                     defaultChecked={staff.permissions.includes(feature.id)}
                                                 />
-                                                <div className="absolute inset-0 bg-blue-600 opacity-0 peer-checked:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <CheckCircle2 className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                                                <div className="absolute inset-0 bg-[#a1f554] opacity-0 peer-checked:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <CheckCircle2 className="h-3.5 w-3.5 text-black" strokeWidth={3} />
                                                 </div>
                                             </div>
                                         </div>
@@ -147,29 +164,34 @@ export default function EditStaffModal({ staff }: EditStaffModalProps) {
                             </div>
                         </div>
 
-                        {/* 4. EXECUTION COMMAND */}
-                        <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                        {/* Submit Buttons */}
+                        <div className="flex gap-3 pt-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => setOpen(false)}
-                                className="flex-1 h-14 rounded-2xl border-slate-200 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all"
+                                className="flex-1 h-12 rounded-xl border-white/10 bg-transparent hover:bg-white/5 text-white transition-all"
+                                disabled={loading}
                             >
-                                Abort
+                                Cancel
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-[2] h-14 bg-slate-900 border-none hover:bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-900/20 group"
                                 disabled={loading}
+                                className="flex-1 h-12 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
                             >
                                 {loading ? (
-                                    <><Loader2 className="animate-spin h-5 w-5 mr-3" /> Updating Node...</>
+                                    <>
+                                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                                        Updating...
+                                    </>
                                 ) : (
                                     <>
-                                        Commence Synchronization
-                                        <ChevronRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                        <CheckCircle2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                                        Update Staff
                                     </>
                                 )}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                             </Button>
                         </div>
                     </form>

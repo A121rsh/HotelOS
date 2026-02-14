@@ -19,11 +19,14 @@ import {
     CreditCard,
     Building2,
     ArrowRight,
-    Lock
+    Lock,
+    Hotel,
+    Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Script from "next/script";
 import { toast } from "sonner";
+import Link from "next/link";
 
 declare global {
     interface Window {
@@ -63,7 +66,7 @@ export default function CheckoutClient() {
                 if (activateRes.success) {
                     setIsSuccess(true);
                     setTimeout(() => {
-                        router.push("/welcome");
+                        router.push("/login?onboarding=true");
                     }, 2000);
                 } else {
                     setError(activateRes.error!);
@@ -93,19 +96,31 @@ export default function CheckoutClient() {
             description: `Payment for ${orderData.planName} Plan`,
             order_id: orderData.orderId,
             handler: async function (response: any) {
+                const tempEmail = sessionStorage.getItem("temp_reg_email");
+                const tempPass = sessionStorage.getItem("temp_reg_pass");
+                const tempName = sessionStorage.getItem("temp_reg_name");
+
                 const verifyRes = await verifyAndActivateSubscription(
                     response.razorpay_payment_id,
                     response.razorpay_order_id,
                     response.razorpay_signature,
                     planId!,
-                    hotelId!
+                    hotelId!,
+                    tempEmail || undefined,
+                    tempPass || undefined,
+                    tempName || undefined
                 );
+
+                // Clear sensitive data
+                sessionStorage.removeItem("temp_reg_email");
+                sessionStorage.removeItem("temp_reg_pass");
+                sessionStorage.removeItem("temp_reg_name");
 
                 if (verifyRes.success) {
                     setIsSuccess(true);
                     toast.success("Payment successful! Welcome to the elite.");
                     setTimeout(() => {
-                        router.push("/welcome");
+                        router.push("/login?onboarding=true");
                     }, 2500);
                 } else {
                     setError(verifyRes.error!);
@@ -118,7 +133,7 @@ export default function CheckoutClient() {
                 contact: ""
             },
             theme: {
-                color: "#2563eb"
+                color: "#b5f347"
             }
         };
 
@@ -132,179 +147,222 @@ export default function CheckoutClient() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center gap-6 p-20">
-                <div className="h-20 w-20 rounded-[2rem] bg-slate-900 flex items-center justify-center shadow-2xl animate-spin">
-                    <Loader2 className="h-10 w-10 text-blue-400" />
+            <div className="flex flex-col items-center gap-8 p-20 h-screen w-full bg-[#0a0a0a] justify-center">
+                <div className="h-24 w-24 rounded-[2.5rem] bg-[#111111] border border-[#b5f347]/20 flex items-center justify-center shadow-[0_0_50px_rgba(181,243,71,0.1)] relative overflow-hidden">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                        <Loader2 className="h-10 w-10 text-[#b5f347]" />
+                    </motion.div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#b5f34722_0%,transparent_70%)]" />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Initializing Payment Gateway</span>
+                <div className="flex flex-col items-center gap-2">
+                    <span className="text-[10px] font-black text-white uppercase tracking-[0.5em] opacity-80">Synchronizing Gateway</span>
+                    <span className="text-[8px] font-bold text-slate-800 uppercase tracking-widest">Protocol: Razorpay Security v3.1</span>
+                </div>
             </div>
         );
     }
 
     return (
-        <>
+        <div className="h-screen w-full bg-[#0a0a0a] flex overflow-hidden font-outfit relative">
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-2xl"
-            >
-                <Card className="border-none shadow-[0_32px_128px_-32px_rgba(0,0,0,0.15)] bg-white/90 backdrop-blur-3xl rounded-[3.5rem] overflow-hidden">
-                    <div className="h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+            {/* LEFT SIDE: ORDER SUMMARY & BRANDING */}
+            <div className="hidden lg:flex w-[40%] h-full bg-[#090909] border-r border-white/5 flex-col relative overflow-hidden p-16 justify-between">
+                {/* Background Effects */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-20%] left-[-20%] w-[600px] h-[600px] bg-[#b5f347]/5 rounded-full blur-[140px]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff03_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+                </div>
 
+                {/* Header/Logo */}
+                <div className="relative z-10">
+                    <Link href="/" className="flex items-center gap-3 mb-16 group w-fit">
+                        <div className="bg-[#b5f347] p-2.5 rounded-xl shadow-2xl shadow-[#b5f347]/20 group-hover:rotate-[10deg] transition-all">
+                            <Hotel className="h-6 w-6 text-black" />
+                        </div>
+                        <span className="text-2xl font-black text-white tracking-tighter uppercase italic-none">
+                            Hotel<span className="text-[#b5f347]">OS</span>
+                        </span>
+                    </Link>
+
+                    {/* Summary Card Content */}
+                    <div className="space-y-12">
+                        <div>
+                            <p className="text-[10px] font-black text-[#b5f347] uppercase tracking-[0.5em] mb-6">Allocation Summary</p>
+                            <h2 className="text-5xl font-black text-white tracking-tighter uppercase mb-4 leading-[0.9]">
+                                {orderData?.planName || "Core"} <span className="text-slate-800">Node</span>
+                            </h2>
+                            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em] max-w-sm leading-relaxed">
+                                You are provisioning a secure enterprise node within the global HotelOS network.
+                            </p>
+                        </div>
+
+                        <div className="space-y-6 pt-12 border-t border-white/5">
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Base Subscription</span>
+                                <span className="text-2xl font-black text-white tracking-tighter">₹{orderData ? orderData.amount / 100 : "..."}</span>
+                            </div>
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Node Allocation Fee</span>
+                                <span className="text-2xl font-black text-[#b5f347] tracking-tighter">₹0</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-12 flex flex-col gap-6">
+                            <div className="flex justify-between w-full items-baseline">
+                                <span className="text-[12px] font-black text-white uppercase tracking-[0.5em]">Total Settlement</span>
+                                <span className="text-6xl font-black text-white tracking-tighter">₹{orderData ? orderData.amount / 100 : "..."}</span>
+                            </div>
+                            <div className="w-full h-14 bg-white/[0.03] rounded-2xl flex items-center justify-center px-4 border border-white/5">
+                                <span className="text-[9px] font-black text-slate-700 uppercase tracking-[0.6em]">{orderData?.orderId || "GENERATING_ID..."}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer/Trust */}
+                <div className="relative z-10 opacity-30">
+                    <div className="flex items-center gap-3">
+                        <ShieldCheck className="h-4 w-4 text-white" />
+                        <span className="text-[9px] font-black text-white uppercase tracking-[0.3em]">SECURED BY RAZORPAY TRUST LAYER</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* RIGHT SIDE: PAYMENT FORM */}
+            <div className="flex-1 w-full h-full relative flex flex-col bg-[#0a0a0a] overflow-y-auto">
+                {/* Background */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[10%] right-[10%] w-[800px] h-[800px] bg-[#b5f347]/5 rounded-full blur-[160px]" />
+                </div>
+
+                <div className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full p-8 lg:p-24 relative z-10">
                     <AnimatePresence mode="wait">
                         {isSuccess ? (
                             <motion.div
                                 key="success"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-center py-20 px-12"
+                                className="text-center py-12 bg-[#111111]/50 border border-white/5 rounded-[3rem] p-12"
                             >
-                                <div className="mx-auto h-24 w-24 rounded-[2.5rem] bg-emerald-50 text-emerald-500 flex items-center justify-center mb-10 shadow-xl shadow-emerald-500/10 border border-emerald-100">
+                                <div className="mx-auto h-24 w-24 rounded-3xl bg-[#b5f347] text-black flex items-center justify-center mb-10 shadow-[0_20px_40px_rgba(181,243,71,0.2)]">
                                     <CheckCircle2 className="h-12 w-12" />
                                 </div>
-                                <h3 className="text-4xl font-black font-outfit text-slate-900 mb-4 uppercase italic tracking-tighter">Handshake Established.</h3>
-                                <p className="text-slate-500 font-bold text-lg mb-12">
-                                    Net settlement received. Your enterprise property node is being allocated on our high-authority cloud.
-                                    <br /><span className="text-blue-600">Redirecting to provisioning console...</span>
+                                <h3 className="text-4xl font-black font-outfit text-white mb-4 uppercase italic tracking-tighter">Settlement Confirmed.</h3>
+                                <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.3em] mb-12 opacity-60 max-w-sm mx-auto">
+                                    Authority established. Your enterprise property node is being provisioned.
                                 </p>
-                                <div className="flex items-center justify-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 py-3 rounded-full border border-slate-100 max-w-xs mx-auto">
+                                <div className="flex items-center justify-center gap-4 text-[10px] font-black text-[#b5f347] uppercase tracking-[0.4em] bg-[#b5f347]/5 py-4 rounded-2xl border border-[#b5f347]/10 max-w-xs mx-auto">
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    Synchronizing Authority
+                                    Redirecting to HQ
                                 </div>
                             </motion.div>
                         ) : (
-                            <motion.div key="checkout">
-                                <CardHeader className="text-center pt-14 pb-8 px-12">
-                                    <div className="mx-auto h-16 w-16 rounded-[1.5rem] bg-blue-50 flex items-center justify-center mb-6 shadow-sm border border-blue-100">
-                                        <CreditCard className="h-8 w-8 text-blue-600" />
+                            <motion.div
+                                key="checkout"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-12"
+                            >
+                                {/* Header */}
+                                <div>
+                                    <div className="flex items-center gap-5 mb-8">
+                                        <div className="h-16 w-16 rounded-3xl bg-[#b5f347]/10 border border-[#b5f347]/20 flex items-center justify-center shadow-[0_0_30px_rgba(181,243,71,0.1)]">
+                                            <CreditCard className="h-7 w-7 text-[#b5f347]" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-3xl font-black font-outfit text-white tracking-tighter uppercase leading-none mb-2">Finalize <span className="text-[#b5f347]">Handshake</span></h3>
+                                            <p className="text-slate-600 text-[10px] font-black uppercase tracking-[0.4em]">Node Investment Protocol</p>
+                                        </div>
                                     </div>
-                                    <CardTitle className="text-4xl font-black font-outfit text-slate-900 tracking-tight leading-none italic underline decoration-blue-500 underline-offset-8">
-                                        Finalize <span className="text-blue-600">Investment</span>
-                                    </CardTitle>
-                                    <CardDescription className="text-slate-500 font-medium text-lg mt-6">
-                                        Review your node selection and authorize the secure transaction to activate your enterprise environment.
-                                    </CardDescription>
-                                </CardHeader>
+                                    <p className="text-slate-500 font-medium text-sm leading-relaxed max-w-lg">
+                                        Complete your subscription to activate full administrative access. Your connection is secured with end-to-end encryption.
+                                    </p>
+                                </div>
 
-                                <CardContent className="px-12 pb-8">
-                                    {error && (
-                                        <div className="bg-red-50 text-red-600 p-6 rounded-[2rem] border border-red-100 flex items-center gap-4 mb-8">
-                                            <ShieldCheck className="h-6 w-6 shrink-0" />
-                                            <span className="text-xs font-black uppercase tracking-tight">Security Exception: {error}</span>
-                                        </div>
-                                    )}
+                                {error && (
+                                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 flex items-center gap-4">
+                                        <ShieldCheck className="h-6 w-6 text-red-500 shrink-0" />
+                                        <span className="text-red-500 font-black text-[10px] uppercase tracking-widest leading-none">Security Exception: {error}</span>
+                                    </div>
+                                )}
 
-                                    {/* 2. INSTITUTIONAL BILLING INFRASTRUCTURE */}
-                                    <div className="space-y-6">
-                                        <div className="p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 backdrop-blur-md">
-                                            <div className="flex items-center gap-3 mb-6">
-                                                <div className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm">
-                                                    <Building2 className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">Fiscal Identity</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">Billing & Tax Compliance Node</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Company / Legal Name</Label>
-                                                    <Input
-                                                        placeholder="Property Holdings Ltd."
-                                                        className="h-12 rounded-xl border-slate-200 bg-white/50 text-[11px] font-bold"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Tax ID / GSTIN (Optional)</Label>
-                                                    <Input
-                                                        placeholder="29AAAAA0000A1Z5"
-                                                        className="h-12 rounded-xl border-slate-200 bg-white/50 text-[11px] font-bold"
-                                                    />
-                                                </div>
-                                                <div className="col-span-full space-y-1.5">
-                                                    <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Registered Address</Label>
-                                                    <Input
-                                                        placeholder="Suite 500, Corporate Plaza, MG Road"
-                                                        className="h-12 rounded-xl border-slate-200 bg-white/50 text-[11px] font-bold"
-                                                    />
+                                <div className="space-y-8 bg-[#111111]/50 border border-white/5 rounded-3xl p-8">
+                                    <div className="space-y-4">
+                                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 opacity-60">Legal Entity Identification</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="relative group">
+                                                <Input
+                                                    placeholder="Property Holdings Node"
+                                                    className="h-14 rounded-2xl border-white/5 bg-white/[0.02] focus:bg-white/[0.05] focus:border-[#b5f347]/30 transition-all text-sm font-bold text-white placeholder:text-slate-800"
+                                                />
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                                                    <Building2 className="h-4 w-4 text-white" />
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white overflow-hidden relative group">
-                                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                                                <Zap className="h-32 w-32" />
-                                            </div>
-                                            <div className="relative z-10 flex justify-between items-center">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Selected Fiscal Node</p>
-                                                    <h3 className="text-3xl font-black font-outfit tracking-tight capitalize">{orderData?.planName} Bundle</h3>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Settlement</p>
-                                                    <h3 className="text-3xl font-black font-outfit tracking-tight">₹{orderData?.amount / 100}</h3>
-                                                </div>
-                                            </div>
-                                            <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Governance Active</span>
-                                                </div>
-                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">ORDER_ID: {orderData?.orderId}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Trust Badges */}
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
-                                                    <Lock className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">AES-256 TLS</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">End-to-End Encryption</p>
-                                                </div>
-                                            </div>
-                                            <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm">
-                                                    <ShieldCheck className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">Instant Provision</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">Zero-Latency Sync</p>
+                                            <div className="relative group">
+                                                <Input
+                                                    placeholder="Tax ID / GSTIN (Optional)"
+                                                    className="h-14 rounded-2xl border-white/5 bg-white/[0.02] focus:bg-white/[0.05] focus:border-[#b5f347]/30 transition-all text-sm font-bold text-white placeholder:text-slate-800"
+                                                />
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                                                    <Globe className="h-4 w-4 text-white" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </CardContent>
 
-                                <CardFooter className="px-12 pb-14 pt-4">
-                                    <Button
-                                        onClick={handlePayment}
-                                        disabled={processing || !orderData}
-                                        className="w-full h-20 btn-premium rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] shadow-[0_24px_48px_-12px_rgba(37,99,235,0.3)] group relative overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                        {processing ? (
-                                            <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Authorizing Settlement...</>
-                                        ) : (
-                                            <>
-                                                Authorize Payment Protocol
-                                                <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </CardFooter>
+                                    <div className="pt-4">
+                                        <Button
+                                            onClick={handlePayment}
+                                            disabled={processing || !orderData}
+                                            className="w-full h-20 bg-[#b5f347] hover:bg-[#a2db3f] text-black rounded-2xl font-black text-[12px] uppercase tracking-[0.4em] shadow-[0_24px_48px_-12px_rgba(181,243,71,0.2)] group relative overflow-hidden active:scale-[0.98] transition-all"
+                                        >
+                                            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
+                                            <div className="flex items-center justify-center gap-4 relative z-10 hidden group-hover:flex">
+                                                <span>Execute Transaction</span>
+                                                <ArrowRight className="h-5 w-5" />
+                                            </div>
+                                            <div className="flex items-center justify-center gap-4 relative z-10 group-hover:hidden">
+                                                {processing ? (
+                                                    <>
+                                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                                        <span>Authorizing...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>Authorize Settlement</span>
+                                                        <ArrowRight className="h-5 w-5" />
+                                                    </>
+                                                )}
+                                            </div>
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* TRUST ICONS */}
+                                <div className="grid grid-cols-3 gap-4 opacity-40">
+                                    {[
+                                        { icon: Lock, label: "AES-256", sub: "Encrypted" },
+                                        { icon: ShieldCheck, label: "PCI DSS", sub: "Compliant" },
+                                        { icon: Zap, label: "Instant", sub: "Provisions" }
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex flex-col items-center text-center gap-2">
+                                            <item.icon className="h-4 w-4 text-[#b5f347]" />
+                                            <div>
+                                                <p className="text-[8px] font-black text-white uppercase tracking-widest">{item.label}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </Card>
-
-                <p className="text-center mt-10 text-[9px] font-black text-slate-400 uppercase tracking-[0.4em]"> Secure Fiscal node regulated by RBI guidelines </p>
-            </motion.div>
-        </>
+                </div>
+            </div>
+        </div>
     );
 }

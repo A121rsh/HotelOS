@@ -4,17 +4,12 @@ import { getHotelByUserId } from "@/lib/hotel-helper";
 import { redirect } from "next/navigation";
 import {
     Globe,
-    Plus,
     ShieldCheck,
-    Zap,
     Activity,
-    Settings,
-    AlertCircle,
-    History,
     RefreshCw,
-    ArrowUpRight,
     Search,
-    Filter
+    TrendingUp,
+    Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,32 +46,37 @@ export default async function ChannelsPage() {
     const totalBookings = channels.reduce((acc, curr) => acc + curr._count.bookings, 0);
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-10 pb-10 font-inter">
+        <div className="max-w-[1600px] mx-auto space-y-8 md:space-y-12 pb-20 px-4 md:px-6 font-inter min-h-screen">
 
-            {/* 1. EXECUTIVE COMMAND HEADER */}
-            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 font-outfit">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-                    <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 bg-blue-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-blue-500/30">
-                            <Globe className="h-8 w-8 text-white animate-spin-slow" />
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0f110d]/90 to-black/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden mt-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#a1f554] rounded-full blur-[150px] opacity-10" />
+
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <div className="h-14 w-14 md:h-16 md:w-16 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center border border-[#a1f554]/20">
+                            <Globe className="h-7 w-7 md:h-8 md:w-8 text-[#a1f554]" />
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight uppercase italic">Channel Intelligence</h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold uppercase tracking-widest text-[10px]">{activeChannels.length} Live Sync Nodes</Badge>
-                                <span className="text-slate-400 font-bold text-xs uppercase tracking-widest ml-1 flex items-center gap-1 font-inter">
-                                    <ShieldCheck className="h-3 w-3" /> Global ARI Protocol Active
+                            <h1 className="text-2xl md:text-4xl font-bold text-white">Channel Manager</h1>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2">
+                                <div className="flex items-center gap-2 bg-[#a1f554]/10 px-3 py-1 rounded-full border border-[#a1f554]/20">
+                                    <div className="h-2 w-2 rounded-full bg-[#a1f554] animate-pulse" />
+                                    <span className="text-[#a1f554] font-semibold text-xs">{activeChannels.length} Active</span>
+                                </div>
+                                <span className="text-slate-400 text-xs">
+                                    {totalBookings} Total Bookings
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div className="relative flex-1 md:w-80 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+                        <div className="relative flex-1 sm:w-[320px] group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#a1f554] transition-colors" />
                             <input
-                                placeholder="Search channel identity..."
-                                className="w-full h-14 pl-12 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-blue-500 focus:outline-none transition-all text-base font-medium shadow-inner shadow-slate-100 font-inter"
+                                placeholder="Search channels..."
+                                className="w-full h-12 pl-11 pr-4 rounded-xl border border-white/10 bg-white/5 placeholder:text-slate-500 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 transition-all text-white focus:outline-none"
                             />
                         </div>
                         <AddChannelModal hotelId={hotel.id} />
@@ -84,86 +84,157 @@ export default async function ChannelsPage() {
                 </div>
             </div>
 
-            {/* 2. OPERATIONAL VITALS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden group shadow-2xl">
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Inbound Traffic</p>
-                        <p className="text-3xl font-black font-outfit text-blue-400">{totalBookings}</p>
-                        <div className="flex items-center gap-2 mt-4">
-                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Real-time Ingestion</span>
-                        </div>
-                    </div>
-                    <Zap className="absolute -bottom-4 -right-4 h-24 w-24 text-white/5 group-hover:scale-125 transition-transform duration-700" />
-                </div>
-
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl group">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Global Health</p>
-                    <p className="text-3xl font-black font-outfit text-emerald-600">OPTIMAL</p>
-                    <div className="flex items-center gap-2 mt-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                        <Activity className="h-3 w-3 text-emerald-500" /> Latency: 42ms
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl group">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Inventory Reach</p>
-                    <p className="text-3xl font-black font-outfit text-slate-900">{channels.reduce((acc, c) => acc + c.mappings.length, 0)} Units</p>
-                    <div className="flex items-center gap-2 mt-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                        <RefreshCw className="h-3 w-3 text-blue-500" /> Mapped & Synchronized
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl group">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">System Authority</p>
-                    <p className="text-3xl font-black font-outfit text-slate-900">VERIFIED</p>
-                    <div className="flex items-center gap-2 mt-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                        <ShieldCheck className="h-3 w-3 text-blue-600" /> Multi-factor Active
-                    </div>
-                </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <StatCard
+                    label="Total Bookings"
+                    value={totalBookings}
+                    icon={TrendingUp}
+                    color="blue"
+                    subtext="All time"
+                />
+                <StatCard
+                    label="Active Channels"
+                    value={activeChannels.length}
+                    icon={Globe}
+                    color="green"
+                    subtext="Connected"
+                />
+                <StatCard
+                    label="Mapped Units"
+                    value={channels.reduce((acc, c) => acc + c.mappings.length, 0)}
+                    icon={Layers}
+                    color="purple"
+                    subtext="Synchronized"
+                />
+                <StatCard
+                    label="System Status"
+                    value="Active"
+                    icon={Activity}
+                    color="cyan"
+                    subtext="All systems operational"
+                />
             </div>
 
-            {/* 3. CHANNEL DISTRIBUTION GRID */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-8">
-                {channels.length === 0 ? (
-                    <div className="col-span-full py-40 text-center bg-white border-4 border-dashed border-slate-100 rounded-[3rem] shadow-inner">
-                        <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 border-8 border-white shadow-xl">
-                            <Globe className="h-10 w-10 text-slate-200" />
+            {/* Channels Grid */}
+            <div>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-1 bg-[#a1f554] rounded-full" />
+                        <div>
+                            <h2 className="text-xl md:text-2xl font-bold text-white">Connected Channels</h2>
+                            <p className="text-xs text-slate-400 mt-0.5">{channels.length} channels configured</p>
                         </div>
-                        <h3 className="text-2xl font-black font-outfit text-slate-900 mb-2">No Distribution Channels</h3>
-                        <p className="text-slate-400 font-medium max-w-sm mx-auto mb-10">
-                            Your property is currently isolated. Connect to OTAs like Booking.com, Airbnb, or Expedia to begin global synchronization.
+                    </div>
+                </div>
+
+                {channels.length === 0 ? (
+                    <div className="py-20 md:py-32 text-center bg-white/5 border border-dashed border-white/10 rounded-3xl">
+                        <div className="h-16 w-16 md:h-20 md:w-20 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#a1f554]/20">
+                            <Globe className="h-8 w-8 md:h-10 md:w-10 text-[#a1f554]" />
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Channels Connected</h3>
+                        <p className="text-slate-400 text-sm max-w-md mx-auto mb-8 px-4">
+                            Connect to booking platforms like Booking.com, Airbnb, or Expedia to start receiving reservations.
                         </p>
                         <AddChannelModal hotelId={hotel.id} />
                     </div>
                 ) : (
-                    channels.map((channel) => (
-                        <ChannelCard key={channel.id} channel={channel} rooms={rooms} />
-                    ))
+                    <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
+                        {channels.map((channel) => (
+                            <ChannelCard key={channel.id} channel={channel} rooms={rooms} />
+                        ))}
+                    </div>
                 )}
             </div>
 
-            {/* 4. SECURITY & COMPLIANCE FOOTER */}
-            <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-10">
-                <div className="space-y-4 max-w-2xl">
+            {/* Footer Info */}
+            <div className="bg-gradient-to-br from-[#0f110d]/60 to-black/60 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-3 flex-1">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center">
-                            <ShieldCheck className="h-6 w-6 text-blue-400" />
+                        <div className="h-10 w-10 bg-[#a1f554]/10 rounded-xl flex items-center justify-center border border-[#a1f554]/20">
+                            <ShieldCheck className="h-5 w-5 text-[#a1f554]" />
                         </div>
-                        <h2 className="text-2xl font-black font-outfit text-slate-900 leading-tight">Data Integrity Protocol</h2>
+                        <h2 className="text-lg md:text-xl font-bold text-white">Channel Sync Status</h2>
                     </div>
-                    <p className="text-slate-500 font-medium leading-relaxed">
-                        The HotelOS Channel Manager utilizes a **high-authority ARI engine** to ensure rate parity and inventory accuracy across all connected nodes. Manual synchronization triggers are recorded in the system audit trail for security compliance.
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                        All channels are synchronized in real-time. Changes to rates and availability are automatically distributed across all connected platforms.
                     </p>
                 </div>
-                <div className="flex flex-col gap-3 shrink-0">
-                    <Button variant="outline" className="h-14 px-8 rounded-2xl border-slate-200 bg-white font-black text-[10px] uppercase tracking-widest hover:bg-slate-50">
-                        <History className="mr-2 h-4 w-4" /> Global Audit Logs
-                    </Button>
-                    <Button className="h-14 px-8 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
-                        <RefreshCw className="mr-2 h-4 w-4" /> Force Global Refresh
-                    </Button>
+                <Button className="h-12 px-6 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold text-sm transition-all shadow-lg hover:shadow-xl shrink-0 w-full md:w-auto">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Sync All Channels
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+function StatCard({ 
+    label, 
+    value, 
+    icon: Icon, 
+    color, 
+    subtext 
+}: { 
+    label: string; 
+    value: string | number; 
+    icon: any; 
+    color: string; 
+    subtext: string;
+}) {
+    const colorClasses = {
+        blue: {
+            bg: 'bg-[#8ba4b8]/10',
+            text: 'text-[#8ba4b8]',
+            border: 'border-[#8ba4b8]/20'
+        },
+        green: {
+            bg: 'bg-[#a1f554]/10',
+            text: 'text-[#a1f554]',
+            border: 'border-[#a1f554]/20'
+        },
+        purple: {
+            bg: 'bg-purple-500/10',
+            text: 'text-purple-400',
+            border: 'border-purple-500/20'
+        },
+        cyan: {
+            bg: 'bg-cyan-500/10',
+            text: 'text-cyan-400',
+            border: 'border-cyan-500/20'
+        }
+    };
+
+    const currentColor = colorClasses[color as keyof typeof colorClasses];
+
+    return (
+        <div className={cn(
+            "bg-[#0f110d] rounded-2xl p-5 md:p-6 border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group",
+            currentColor.border
+        )}>
+            <div className="flex items-center justify-between relative z-10 mb-4">
+                <div className={cn(
+                    "h-11 w-11 md:h-12 md:w-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110",
+                    currentColor.bg
+                )}>
+                    <Icon className={cn("h-5 w-5 md:h-6 md:w-6", currentColor.text)} />
                 </div>
+                <div className="text-right">
+                    <div className="text-2xl md:text-3xl font-bold text-white">{value}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{subtext}</div>
+                </div>
+            </div>
+
+            <div className="relative z-10">
+                <p className="text-sm font-semibold text-slate-400">{label}</p>
+            </div>
+
+            <div className={cn(
+                "absolute -right-6 -bottom-6 h-20 w-20 md:h-24 md:w-24 opacity-5 pointer-events-none transition-all duration-500 group-hover:scale-110",
+                currentColor.text
+            )}>
+                <Icon className="h-full w-full" />
             </div>
         </div>
     );

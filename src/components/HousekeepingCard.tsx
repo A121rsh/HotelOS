@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { markRoomClean, markRoomDirty, markRoomMaintenance } from "@/actions/housekeeping";
-import { Sparkles, Trash2, Wrench, CheckCircle2, AlertTriangle, Loader2, BedDouble, ChevronRight } from "lucide-react";
+import { Sparkles, Trash2, Wrench, CheckCircle2, AlertTriangle, Loader2, BedDouble, ChevronRight, Info, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -33,102 +33,123 @@ export default function HousekeepingCard({ room }: HousekeepingCardProps) {
     const isDirty = room.status === "DIRTY";
     const isClean = room.status === "AVAILABLE";
     const isMaintenance = room.status === "MAINTENANCE";
+    const isOccupied = room.status === "BOOKED";
 
     return (
         <div className={cn(
-            "group relative bg-white border rounded-[2rem] p-8 shadow-xl transition-all duration-500 hover:shadow-2xl",
-            isDirty ? "border-orange-100 shadow-orange-500/5" :
-                isClean ? "border-emerald-100 shadow-emerald-500/5 hover:border-emerald-200" :
-                    "border-slate-100 shadow-slate-500/5"
+            "group relative bg-[#0a0a0a] border border-white/10 rounded-[2rem] p-6 transition-all duration-500 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col min-h-[380px] hover:-translate-y-1.5",
+            isDirty ? "hover:border-orange-500/30" :
+                isClean ? "hover:border-[#B0FF4D]/30" :
+                    isOccupied ? "hover:border-blue-500/30" :
+                        "hover:border-slate-500/30"
         )}>
-            {/* Decorative Background Icon */}
-            <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none">
-                {isDirty ? <AlertTriangle className="h-24 w-24 -rotate-12" /> :
-                    isClean ? <CheckCircle2 className="h-24 w-24 -rotate-12" /> :
-                        <Wrench className="h-24 w-24 -rotate-12" />}
-            </div>
+            {/* 1. LEFT INDICATOR PILLAR */}
+            <div className={cn(
+                "absolute left-0 top-0 bottom-0 w-1 transition-colors duration-700 rounded-l-[2rem]",
+                isDirty ? "bg-orange-500 shadow-[2px_0_15px_rgba(249,115,22,0.4)]" :
+                    isClean ? "bg-[#B0FF4D] shadow-[2px_0_15px_rgba(176,255,77,0.4)]" :
+                        isOccupied ? "bg-blue-500 shadow-[2px_0_15px_rgba(59,130,246,0.4)]" :
+                            "bg-slate-700"
+            )} />
 
-            {/* Header: Room & Type */}
-            <div className="flex justify-between items-start mb-8">
-                <div className="flex items-center gap-5">
-                    <div className={cn(
-                        "h-16 w-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-xl",
-                        isDirty ? "bg-orange-600 text-white shadow-orange-500/20" :
-                            isClean ? "bg-emerald-600 text-white shadow-emerald-500/20" :
-                                "bg-slate-900 text-white shadow-slate-900/20"
-                    )}>
-                        <BedDouble className="h-8 w-8" />
-                    </div>
-                    <div>
-                        <h3 className="text-3xl font-black font-outfit text-slate-900 tracking-tight leading-none mb-1">{room.number}</h3>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{room.type}</p>
-                    </div>
+            {/* 2. HEADER: COMMAND IDENTITY */}
+            <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className="space-y-0.5">
+                    <p className="text-[8px] font-mono text-slate-500 uppercase tracking-[0.3em] font-black italic">UNIT_ID</p>
+                    <h3 className="text-5xl font-black font-outfit text-white tracking-tighter italic uppercase leading-none">
+                        {room.number}
+                    </h3>
                 </div>
                 <Badge className={cn(
-                    "rounded-full font-black text-[9px] px-3 py-1 uppercase tracking-widest border-none shadow-sm",
-                    isDirty ? "bg-orange-100 text-orange-600" :
-                        isClean ? "bg-emerald-100 text-emerald-600" :
-                            "bg-slate-100 text-slate-600"
+                    "rounded-lg font-black text-[8px] px-2.5 py-1 uppercase tracking-widest border-none shrink-0",
+                    isDirty ? "bg-orange-500 text-white" :
+                        isClean ? "bg-[#B0FF4D] text-black" :
+                            isOccupied ? "bg-blue-600 text-white" :
+                                "bg-slate-800 text-slate-300"
                 )}>
-                    {room.status === 'AVAILABLE' ? 'Verified' : room.status}
+                    {isClean ? 'STABLE' : isDirty ? 'DIRTY' : isOccupied ? 'OCCUPIED' : 'OFFLINE'}
                 </Badge>
             </div>
 
-            <div className="h-px bg-slate-50 mb-8" />
-
-            {/* Status Messaging */}
-            <div className="mb-8">
+            {/* 3. OPERATIONAL TELEMETRY (Scanning Pill) */}
+            <div className="mb-6 relative z-10">
                 <div className={cn(
-                    "flex items-center gap-2.5 px-4 py-3 rounded-2xl border text-xs font-bold transition-all",
-                    isDirty ? "bg-orange-50 text-orange-700 border-orange-100" :
-                        isClean ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                            "bg-slate-50 text-slate-600 border-slate-100"
+                    "inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-[0.1em] uppercase italic bg-black/40 w-full overflow-hidden",
+                    isDirty ? "text-orange-500 border-orange-500/10" :
+                        isClean ? "text-[#B0FF4D] border-[#B0FF4D]/10" :
+                            isOccupied ? "text-blue-400 border-blue-500/20" :
+                                "text-slate-400 border-white/5"
                 )}>
-                    {isDirty ? <AlertTriangle className="h-4 w-4" /> :
-                        isClean ? <CheckCircle2 className="h-4 w-4" /> :
-                            <Wrench className="h-4 w-4" />}
-                    <span className="uppercase tracking-wide">
-                        {isDirty ? "Turnover Required" :
-                            isClean ? "Ready for Guests" :
-                                "Maintenance in Progress"}
+                    <div className="relative flex items-center justify-center shrink-0">
+                        {isDirty ? <AlertTriangle className="h-3.5 w-3.5 animate-pulse" /> :
+                            isClean ? <CheckCircle2 className="h-3.5 w-3.5" /> :
+                                isOccupied ? <BedDouble className="h-3.5 w-3.5" /> :
+                                    <Wrench className="h-3.5 w-3.5" />}
+                    </div>
+                    <span className="truncate">
+                        {isDirty ? "PROTOCOL_REQUIRED" :
+                            isClean ? "INTEGRITY_STABLE" :
+                                isOccupied ? "GUEST_LOADED" :
+                                    "MAINTENANCE_LOCK"}
                     </span>
                 </div>
             </div>
 
-            {/* Action Controls */}
-            <div className="space-y-3">
+            {/* 4. TACTICAL INFO PAD */}
+            <div className="mb-6 relative z-10">
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5 flex items-center gap-3 transition-all group-hover:bg-white/[0.03] overflow-hidden">
+                    <div className={cn(
+                        "h-9 w-9 shrink-0 rounded-lg flex items-center justify-center border shadow-xl transition-transform group-hover:rotate-12",
+                        isOccupied ? "bg-blue-500/10 border-blue-500/20 text-blue-400" :
+                            "bg-black/40 border-white/5 text-slate-500"
+                    )}>
+                        <Info className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-0.5 overflow-hidden">
+                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest">DATA_FEED</p>
+                        <p className="text-[9px] font-bold text-slate-400 leading-tight uppercase tracking-wide italic opacity-80 truncate">
+                            {isDirty ? "Turnover cycle pending." :
+                                isClean ? "Ready for re-entry." :
+                                    isOccupied ? "Privacy mode active." :
+                                        "Room offline."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 5. HUD ACTIONS */}
+            <div className="mt-auto relative z-10">
                 {isDirty && (
                     <Button
                         onClick={() => handleAction(markRoomClean, room.id)}
                         disabled={loading}
-                        className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/20 group/btn transition-all text-xs uppercase tracking-widest"
+                        className="w-full h-12 bg-[#B0FF4D] hover:bg-[#c4ff6b] text-black rounded-xl font-black shadow-[0_5px_15px_rgba(176,255,77,0.2)] transition-all text-[9.5px] uppercase tracking-[0.2em]"
                     >
-                        {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                        {loading ? <Loader2 className="animate-spin h-4 w-4" /> : (
                             <>
-                                <Sparkles className="h-5 w-5 mr-3 transition-transform group-hover/btn:scale-125" />
-                                Finish Cleaning
+                                <Sparkles className="h-4 w-4 mr-2" /> INITIALIZE_CLEANSE
                             </>
                         )}
                     </Button>
                 )}
 
                 {isClean && (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500">
                         <Button
                             variant="outline"
                             onClick={() => handleAction(markRoomDirty, room.id)}
                             disabled={loading}
-                            className="h-14 rounded-2xl font-black border-orange-100 text-orange-600 hover:bg-orange-50 transition-all text-[10px] uppercase tracking-widest"
+                            className="h-10 rounded-lg font-black border-white/5 bg-white/[0.03] text-orange-500 hover:bg-orange-500/10 transition-all text-[8px] uppercase tracking-widest italic"
                         >
-                            <Trash2 className="h-4 w-4 mr-2" /> Dirty
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" /> TAG_DIRTY
                         </Button>
                         <Button
                             variant="outline"
                             onClick={() => handleAction(markRoomMaintenance, room.id)}
                             disabled={loading}
-                            className="h-14 rounded-2xl font-black border-slate-100 text-slate-600 hover:bg-slate-50 transition-all text-[10px] uppercase tracking-widest"
+                            className="h-10 rounded-lg font-black border-white/5 bg-white/[0.03] text-slate-400 hover:bg-white/10 transition-all text-[8px] uppercase tracking-widest italic"
                         >
-                            <Wrench className="h-4 w-4 mr-2" /> Repair
+                            <Wrench className="h-3.5 w-3.5 mr-1.5" /> REPAIR
                         </Button>
                     </div>
                 )}
@@ -137,23 +158,22 @@ export default function HousekeepingCard({ room }: HousekeepingCardProps) {
                     <Button
                         onClick={() => handleAction(markRoomClean, room.id)}
                         disabled={loading}
-                        className="w-full h-14 bg-slate-900 hover:bg-black text-white rounded-2xl font-black shadow-lg shadow-slate-900/20 group/btn transition-all text-xs uppercase tracking-widest"
+                        className="w-full h-12 bg-white text-black hover:bg-slate-100 rounded-xl font-black shadow-xl transition-all text-[9.5px] uppercase tracking-[0.2em]"
                     >
-                        {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                        {loading ? <Loader2 className="animate-spin h-4 w-4" /> : (
                             <>
-                                <CheckCircle2 className="h-5 w-5 mr-3 transition-transform group-hover/btn:scale-125" />
-                                Return to Pool
+                                <CheckCircle2 className="h-4 w-4 mr-2" /> RELEASE_NODE
                             </>
                         )}
                     </Button>
                 )}
-            </div>
 
-            {/* Micro-Action Indicator */}
-            <div className={cn(
-                "absolute bottom-0 left-10 right-10 h-1 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-t-full",
-                isDirty ? "bg-orange-600" : isClean ? "bg-emerald-600" : "bg-slate-600"
-            )} />
+                {isOccupied && (
+                    <div className="flex items-center justify-center gap-2 h-12 px-4 bg-blue-500/5 border border-blue-500/10 rounded-xl font-black text-blue-400 text-[8px] uppercase tracking-[0.3em] italic shadow-inner">
+                        <Activity className="h-3.5 w-3.5" /> NODE_LOADED_ACTIVE
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

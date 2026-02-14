@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
+import { NetworkStatus } from "@/components/ui/network-status";
 
 interface SuperAdminSidebarProps {
     email: string;
@@ -46,21 +47,21 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
     ];
 
     const SidebarContent = () => (
-        <div className="h-full flex flex-col bg-slate-900 text-white font-inter">
+        <div className="h-full flex flex-col bg-sidebar-gradient text-white font-inter shadow-2xl">
             {/* BRAND CORE */}
             <div className="p-10 pb-12">
                 <Link href="/admin" className="group block">
                     <div className="flex items-center gap-4 transition-transform duration-500 group-hover:scale-105">
-                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl shadow-white/10 group-hover:rotate-6 transition-all">
-                            <Hotel className="h-6 w-6 text-slate-900" />
+                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-900/10 group-hover:rotate-6 transition-all">
+                            <Hotel className="h-6 w-6 text-emerald-600" />
                         </div>
                         <div className="space-y-0.5">
-                            <h2 className="text-xl font-black font-outfit tracking-tight leading-none italic">
-                                Hotel<span className="text-blue-500">OS</span>
+                            <h2 className="text-xl font-black font-outfit tracking-tight leading-none text-white">
+                                Hotel<span className="text-emerald-200">OS</span>
                             </h2>
-                            <div className="flex items-center gap-1.5 opacity-40">
-                                <ShieldCheck className="h-3 w-3" />
-                                <p className="text-[8px] font-black uppercase tracking-[0.3em]">Command Center</p>
+                            <div className="flex items-center gap-1.5 opacity-60">
+                                <ShieldCheck className="h-3 w-3 text-emerald-200" />
+                                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-emerald-100">Command Center</p>
                             </div>
                         </div>
                     </div>
@@ -69,7 +70,7 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
 
             {/* NAVIGATION LAYER */}
             <nav className="flex-1 px-8 space-y-3">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 ml-2">Global Operations</p>
+                <p className="text-[10px] font-black text-emerald-100/50 uppercase tracking-[0.3em] mb-6 ml-2">Global Operations</p>
 
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -78,14 +79,14 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "group flex items-center justify-between px-6 py-4 rounded-[1.5rem] transition-all duration-500 border border-transparent hover:shadow-2xl hover:shadow-white/5",
+                                "group flex items-center justify-between px-6 py-4 rounded-[1.5rem] transition-all duration-500 border border-transparent hover:shadow-xl hover:shadow-black/5",
                                 isActive
-                                    ? "bg-white text-slate-900 shadow-xl shadow-white/10"
-                                    : "bg-slate-800/20 hover:bg-white/5 text-white/70 hover:text-white"
+                                    ? "bg-white text-emerald-600 shadow-xl shadow-black/10"
+                                    : "bg-white/5 hover:bg-white/10 text-emerald-50/70 hover:text-white"
                             )}
                         >
                             <div className="flex items-center gap-4">
-                                <item.icon className={cn("h-5 w-5 transition-opacity", isActive ? "opacity-100" : "opacity-40 group-hover:opacity-100")} />
+                                <item.icon className={cn("h-5 w-5 transition-opacity", isActive ? "opacity-100" : "opacity-60 group-hover:opacity-100")} />
                                 <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
                             </div>
                             <ChevronRight className={cn("h-4 w-4 transition-all", isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0")} />
@@ -94,21 +95,26 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
                 })}
             </nav>
 
+            {/* NETWORK STATUS */}
+            <div className="px-8 pb-4">
+                <NetworkStatus className="bg-emerald-900/20 border-emerald-500/30 text-emerald-100 justify-center w-full" />
+            </div>
+
             {/* SYSTEM HEALTH MONITOR */}
             <div className="px-8 pb-10 mt-auto">
-                <div className="bg-slate-800/40 rounded-[2rem] p-6 border border-white/5">
+                <div className="bg-black/10 rounded-[2rem] p-6 border border-white/5 backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-emerald-500 animate-pulse" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">System Health</span>
+                            <Activity className="h-4 w-4 text-emerald-300 animate-pulse" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-100/70">System Health</span>
                         </div>
-                        <Zap className="h-3 w-3 text-blue-500" />
+                        <Zap className="h-3 w-3 text-emerald-400" />
                     </div>
                     <div className="space-y-3">
-                        <div className="h-1.5 w-full bg-slate-700/50 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 w-[98%] transition-all" />
+                        <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-400 w-[99.8%] transition-all shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
                         </div>
-                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-slate-500">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-emerald-200/50">
                             <span>Platform Efficiency</span>
                             <span className="text-white">99.8%</span>
                         </div>
@@ -117,20 +123,20 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
             </div>
 
             {/* LOGOUT / PROFILE LAYER */}
-            <div className="p-8 border-t border-white/5 bg-slate-950/20">
+            <div className="p-8 border-t border-white/10 bg-black/20">
                 <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400">
+                        <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white">
                             <Globe className="h-5 w-5" />
                         </div>
                         <div className="min-w-0 pr-4">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{email}</p>
-                            <p className="text-[8px] font-bold text-blue-400 uppercase tracking-widest">Master Authority</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 truncate">{email}</p>
+                            <p className="text-[8px] font-bold text-emerald-300 uppercase tracking-widest">Master Authority</p>
                         </div>
                     </div>
                     <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
-                        className="h-10 w-10 flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors"
+                        className="h-10 w-10 flex items-center justify-center text-emerald-200 hover:text-red-400 transition-colors"
                     >
                         <LogOut className="h-5 w-5" />
                     </button>
@@ -142,11 +148,11 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
     return (
         <>
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 text-white flex items-center justify-between px-6 z-[60] shadow-xl">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-sidebar-gradient text-white flex items-center justify-between px-6 z-[60] shadow-xl">
                 <div className="flex items-center gap-3">
-                    <Hotel className="h-5 w-5 text-blue-500" />
+                    <Hotel className="h-5 w-5 text-white" />
                     <h2 className="text-lg font-black font-outfit uppercase tracking-tighter">
-                        Hotel<span className="text-blue-500">OS</span> Admin
+                        Hotel<span className="text-emerald-200">OS</span> Admin
                     </h2>
                 </div>
                 <button
@@ -182,7 +188,7 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
             </AnimatePresence>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex w-80 bg-slate-900 text-white flex-col fixed inset-y-0 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] z-50">
+            <aside className="hidden lg:flex w-80 bg-sidebar-gradient text-white flex-col fixed inset-y-0 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)] z-50">
                 <SidebarContent />
             </aside>
 

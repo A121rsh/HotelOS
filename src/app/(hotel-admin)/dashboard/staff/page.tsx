@@ -4,7 +4,7 @@ import { getHotelByUserId } from "@/lib/hotel-helper";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Mail, Trash2, User, Sparkles, Users, UserCheck, ShieldCheck, Search, Filter, MoreVertical, Crown } from "lucide-react";
+import { Shield, Mail, Trash2, User, Users, UserCheck, ShieldCheck, Search, Crown, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AddStaffModal from "@/components/AddStaffModal";
 import EditStaffModal from "@/components/EditStaffModal";
@@ -25,15 +25,15 @@ export default async function StaffPage() {
     if (!hotel) {
         return (
             <div className="flex flex-col items-center justify-center h-[70vh] gap-6 text-center animate-in fade-in duration-700">
-                <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center shadow-inner border-8 border-white">
-                    <Shield className="h-10 w-10 text-slate-300" />
+                <div className="h-20 w-20 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                    <Shield className="h-10 w-10 text-slate-500" />
                 </div>
                 <div>
-                    <h2 className="text-3xl font-black font-outfit text-slate-900 tracking-tight">Access Restricted</h2>
-                    <p className="text-slate-400 font-medium max-w-sm mt-2">Only Property Owners can govern staff access and organizational roles.</p>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white">Access Restricted</h2>
+                    <p className="text-slate-400 max-w-sm mt-2">Only property owners can manage staff access and roles.</p>
                 </div>
-                <Button variant="outline" className="h-12 px-8 rounded-xl font-bold border-slate-200">
-                    Return to Command Center
+                <Button className="h-12 px-6 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold">
+                    Return to Dashboard
                 </Button>
             </div>
         );
@@ -47,32 +47,35 @@ export default async function StaffPage() {
     const totalStaffCount = staffList.length + 1; // Including Owner
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-10 pb-10 font-inter">
+        <div className="max-w-[1600px] mx-auto space-y-8 md:space-y-12 pb-20 px-4 md:px-6 font-inter min-h-screen">
 
-            {/* 1. EXECUTIVE HEADER */}
-            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 font-outfit">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-                    <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-slate-900/20">
-                            <Users className="h-8 w-8 text-white" />
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0f110d]/90 to-black/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden mt-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#a1f554] rounded-full blur-[150px] opacity-10" />
+
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <div className="h-14 w-14 md:h-16 md:w-16 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center border border-[#a1f554]/20">
+                            <Users className="h-7 w-7 md:h-8 md:w-8 text-[#a1f554]" />
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">Human Resources</h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-blue-50 text-blue-600 border-none font-bold uppercase tracking-widest text-[10px]">{totalStaffCount} Personnel Active</Badge>
-                                <span className="text-slate-400 font-bold text-xs uppercase tracking-widest ml-1 flex items-center gap-1 font-inter">
-                                    <ShieldCheck className="h-3 w-3" /> Access Control Protocol
-                                </span>
+                            <h1 className="text-2xl md:text-4xl font-bold text-white">Staff Management</h1>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2">
+                                <div className="flex items-center gap-2 bg-[#a1f554]/10 px-3 py-1 rounded-full border border-[#a1f554]/20">
+                                    <div className="h-2 w-2 rounded-full bg-[#a1f554] animate-pulse" />
+                                    <span className="text-[#a1f554] font-semibold text-xs">{totalStaffCount} Active</span>
+                                </div>
+                                <span className="text-slate-400 text-xs">Team Members</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <div className="relative flex-1 md:w-80 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full lg:w-auto">
+                        <div className="relative flex-1 sm:w-[320px] group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#a1f554] transition-colors" />
                             <input
-                                placeholder="Search personnel..."
-                                className="w-full h-14 pl-12 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-blue-500 focus:outline-none transition-all text-base font-medium shadow-inner shadow-slate-100 font-inter"
+                                placeholder="Search staff..."
+                                className="w-full h-12 pl-11 pr-4 rounded-xl border border-white/10 bg-white/5 placeholder:text-slate-500 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 transition-all text-white focus:outline-none"
                             />
                         </div>
                         <AddStaffModal />
@@ -80,95 +83,94 @@ export default async function StaffPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 
-                {/* 1. ROOT ADMINISTRATOR CARD (Owner) */}
-                <div className="group relative bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white overflow-hidden">
-                    <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none group-hover:scale-150 transition-transform duration-1000">
-                        <Crown className="h-40 w-40 fill-current" />
+                {/* Owner Card */}
+                <div className="group relative bg-gradient-to-br from-[#0f110d] to-black rounded-2xl p-6 shadow-2xl text-white overflow-hidden border border-[#a1f554]/20">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-125 transition-transform duration-700">
+                        <Crown className="h-32 w-32 fill-current" />
                     </div>
 
-                    <div className="flex justify-between items-start mb-10 relative z-10">
-                        <div className="h-20 w-20 rounded-[1.8rem] bg-white text-slate-900 flex items-center justify-center text-3xl font-black shadow-xl">
+                    <div className="flex justify-between items-start mb-6 relative z-10">
+                        <div className="h-16 w-16 rounded-xl bg-[#a1f554] text-black flex items-center justify-center text-2xl font-bold shadow-xl">
                             {session.user.name?.charAt(0)}
                         </div>
-                        <Badge className="bg-blue-500/20 text-blue-400 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-lg backdrop-blur-md">
-                            Primary System Admin
+                        <Badge className="bg-[#a1f554]/20 text-[#a1f554] border-[#a1f554]/30 font-semibold text-xs px-3 py-1">
+                            Owner
                         </Badge>
                     </div>
 
-                    <div className="space-y-1 relative z-10">
-                        <h3 className="text-2xl font-black font-outfit tracking-tight leading-none mb-1">{session.user.name}</h3>
-                        <p className="text-xs font-bold text-slate-400 flex items-center gap-2 mb-8">
+                    <div className="space-y-1 relative z-10 mb-6">
+                        <h3 className="text-xl font-bold leading-none mb-2">{session.user.name}</h3>
+                        <p className="text-xs text-slate-400 flex items-center gap-2 truncate">
                             <Mail className="h-3 w-3" /> {session.user.email}
                         </p>
                     </div>
 
-                    <div className="h-px bg-white/5 mb-8" />
+                    <div className="h-px bg-white/10 mb-6" />
 
-                    <div className="space-y-4 relative z-10">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Status</span>
-                            <div className="flex items-center gap-1.5">
-                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-                                <span className="text-[10px] font-black uppercase text-emerald-400">Full Access</span>
+                    <div className="space-y-3 relative z-10">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-400">Status</span>
+                            <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-[#a1f554]" />
+                                <span className="text-[#a1f554] font-semibold">Active</span>
                             </div>
                         </div>
-                        <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Shield className="h-4 w-4 text-blue-400" />
-                                <span className="text-xs font-bold uppercase tracking-tighter">Root Authority</span>
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-[#8ba4b8]" />
+                                <span className="text-xs font-medium">Full Access</span>
                             </div>
-                            <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                            <CheckCircle2 className="h-4 w-4 text-[#a1f554]" />
                         </div>
                     </div>
                 </div>
 
-                {/* 2. OPERATIONAL STAFF CARDS */}
+                {/* Staff Cards */}
                 {staffList.map((staff) => (
                     <div
                         key={staff.id}
                         className={cn(
-                            "group relative bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/40 hover:shadow-2xl transition-all duration-500",
-                            staff.role === 'FRONT_DESK' ? "hover:border-blue-200" : "hover:border-emerald-200"
+                            "group relative bg-[#0f110d] border rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300",
+                            staff.role === 'FRONT_DESK' ? "border-[#8ba4b8]/20 hover:border-[#8ba4b8]/40" : "border-purple-500/20 hover:border-purple-500/40"
                         )}
                     >
-                        <div className="flex justify-between items-start mb-8">
+                        <div className="flex justify-between items-start mb-6">
                             <div className={cn(
-                                "h-20 w-20 rounded-[1.8rem] flex items-center justify-center text-3xl font-black transition-all duration-500 group-hover:scale-110",
-                                staff.role === 'FRONT_DESK' ? "bg-blue-50 text-blue-600 shadow-blue-500/5" : "bg-emerald-50 text-emerald-600 shadow-emerald-500/5"
+                                "h-16 w-16 rounded-xl flex items-center justify-center text-2xl font-bold transition-transform duration-300 group-hover:scale-105",
+                                staff.role === 'FRONT_DESK' ? "bg-[#8ba4b8]/10 text-[#8ba4b8]" : "bg-purple-500/10 text-purple-400"
                             )}>
                                 {staff.name?.charAt(0)}
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <Badge variant="outline" className={cn(
-                                    "font-black text-[8px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-lg border-none",
-                                    staff.role === 'FRONT_DESK' ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"
+                                <Badge className={cn(
+                                    "font-semibold text-xs px-2 py-0.5",
+                                    staff.role === 'FRONT_DESK' 
+                                        ? "bg-[#8ba4b8]/10 text-[#8ba4b8] border-[#8ba4b8]/20" 
+                                        : "bg-purple-500/10 text-purple-400 border-purple-500/20"
                                 )}>
                                     {staff.role.replace('_', ' ')}
                                 </Badge>
-                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Member since {new Date(staff.createdAt).getFullYear()}</span>
+                                <span className="text-xs text-slate-500">
+                                    Since {new Date(staff.createdAt).getFullYear()}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="space-y-1 mb-8">
-                            <h3 className="text-2xl font-black font-outfit text-slate-900 tracking-tight leading-none mb-1">{staff.name}</h3>
-                            <p className="text-xs font-bold text-slate-400 flex items-center gap-2 truncate">
+                        <div className="space-y-1 mb-6">
+                            <h3 className="text-lg font-bold text-white leading-none mb-2">{staff.name}</h3>
+                            <p className="text-xs text-slate-400 flex items-center gap-2 truncate">
                                 <Mail className="h-3 w-3" /> {staff.email}
                             </p>
                         </div>
 
-                        <div className="h-px bg-slate-50 mb-8" />
+                        <div className="h-px bg-white/10 mb-6" />
 
-                        <div className="flex items-center justify-between pt-2">
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50/50 rounded-xl border border-slate-50 group-hover:bg-white transition-colors">
-                                    <UserCheck className="h-3 w-3 text-slate-400" />
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Access Active</span>
-                                </div>
-                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest ml-1 mt-1">
-                                    {staff.permissions?.length || 0} Nodes Delegated
-                                </p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10">
+                                <UserCheck className="h-3 w-3 text-[#a1f554]" />
+                                <span className="text-xs font-medium text-slate-300">Active</span>
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -177,62 +179,63 @@ export default async function StaffPage() {
                                     "use server";
                                     await deleteStaff(staff.id);
                                 }}>
-                                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl text-red-100 hover:text-red-600 hover:bg-red-50 transition-all">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon"
+                                        className="h-9 w-9 rounded-lg text-red-500/50 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                    >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </form>
                             </div>
                         </div>
 
-                        {/* Visual Context Bar */}
+                        {/* Accent Line */}
                         <div className={cn(
-                            "absolute bottom-0 left-10 right-10 h-1 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-t-full uppercase text-[8px] font-black text-center flex items-center justify-center",
-                            staff.role === 'FRONT_DESK' ? "bg-blue-600" : "bg-emerald-600"
+                            "absolute bottom-0 left-6 right-6 h-1 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-t-full",
+                            staff.role === 'FRONT_DESK' ? "bg-[#8ba4b8]" : "bg-purple-500"
                         )} />
                     </div>
                 ))}
 
-                {/* EMPTY STATE */}
+                {/* Empty State */}
                 {staffList.length === 0 && (
-                    <div className="col-span-full py-32 text-center bg-white/50 border-4 border-dashed border-slate-100 rounded-[3rem] animate-pulse">
-                        <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border-4 border-white">
-                            <Users className="h-10 w-10 text-slate-200" />
+                    <div className="col-span-full py-20 md:py-32 text-center bg-white/5 border border-dashed border-white/10 rounded-3xl">
+                        <div className="h-16 w-16 md:h-20 md:w-20 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#a1f554]/20">
+                            <Users className="h-8 w-8 md:h-10 md:w-10 text-[#a1f554]" />
                         </div>
-                        <h3 className="text-xl font-black font-outfit text-slate-900 mb-2">Team Not Assembled</h3>
-                        <p className="text-slate-400 font-medium max-w-sm mx-auto">Your organizational team is currently empty. Add key personnel to begin operational delegation.</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Staff Members</h3>
+                        <p className="text-slate-400 text-sm max-w-sm mx-auto mb-8 px-4">
+                            Add team members to delegate tasks and manage your property efficiently.
+                        </p>
+                        <AddStaffModal />
                     </div>
                 )}
             </div>
 
-            <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-10">
-                <div className="space-y-4 max-w-2xl">
-                    <h2 className="text-2xl font-black font-outfit text-slate-900 leading-tight">Operational Security Information</h2>
-                    <p className="text-slate-500 font-medium leading-relaxed">
-                        Managing personnel access ensures property data integrity. Delegating roles like **Front Desk** and **Housekeeping** allows staff to focus on specific operational sectors while protecting executive-level data.
+            {/* Footer Stats */}
+            <div className="bg-gradient-to-br from-[#0f110d]/60 to-black/60 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-3 flex-1">
+                    <h2 className="text-lg md:text-xl font-bold text-white">Team Overview</h2>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                        Manage your team members and their access levels. Assign roles to control what each staff member can see and do.
                     </p>
                 </div>
-                <div className="flex gap-4 shrink-0">
-                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 text-center shadow-lg shadow-slate-200/50 min-w-[160px]">
-                        <p className="text-3xl font-black font-outfit text-blue-600 mb-1">
+                <div className="flex gap-4 shrink-0 w-full md:w-auto">
+                    <div className="flex-1 md:flex-none bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 text-center min-w-[140px]">
+                        <p className="text-2xl md:text-3xl font-bold text-[#8ba4b8] mb-1">
                             {staffList.filter(s => s.role === 'FRONT_DESK').length}
                         </p>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Receptionists</p>
+                        <p className="text-xs text-slate-400">Front Desk</p>
                     </div>
-                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 text-center shadow-lg shadow-slate-200/50 min-w-[160px]">
-                        <p className="text-3xl font-black font-outfit text-emerald-600 mb-1">
+                    <div className="flex-1 md:flex-none bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 text-center min-w-[140px]">
+                        <p className="text-2xl md:text-3xl font-bold text-purple-400 mb-1">
                             {staffList.filter(s => s.role === 'HOUSEKEEPING').length}
                         </p>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Housekeepers</p>
+                        <p className="text-xs text-slate-400">Housekeeping</p>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
-
-// Minimalist CheckCircle for local use since I didn't import it at top (wait, I did, but let's be safe)
-function CheckCircle2({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
-    )
 }

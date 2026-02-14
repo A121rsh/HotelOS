@@ -6,14 +6,17 @@ import { addDays } from "date-fns";
 
 export async function registerHotel(formData: FormData) {
   const hotelName = formData.get("hotelName") as string;
-  const ownerName = formData.get("ownerName") as string;
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const mobile = formData.get("mobile") as string;
+  const country = formData.get("country") as string;
+  const state = formData.get("state") as string;
   const logo = formData.get("logo") as string;
   const planId = formData.get("planId") as string;
 
-  if (!hotelName || !ownerName || !email || !password || !mobile) {
+  if (!hotelName || !firstName || !lastName || !email || !password || !mobile) {
     return { error: "Please fill all required fields." };
   }
 
@@ -27,9 +30,13 @@ export async function registerHotel(formData: FormData) {
       // 1. Create User
       const newUser = await tx.user.create({
         data: {
-          name: ownerName,
+          firstName: firstName,
+          lastName: lastName,
+          name: `${firstName} ${lastName}`.trim(),
           email: email,
           password: hashedPassword,
+          country: country,
+          state: state,
           role: "OWNER"
         }
       });
@@ -52,7 +59,7 @@ export async function registerHotel(formData: FormData) {
           data: {
             hotelId: newHotel.id,
             planId: planId,
-            status: "PENDING_APPROVAL", // Will become ACTIVE after payment/approval
+            status: "PENDING_APPROVAL", // Will become ACTIVE after payment
             startDate: new Date(),
             endDate: addDays(new Date(), 30), // Default 30 days
           }
@@ -61,6 +68,12 @@ export async function registerHotel(formData: FormData) {
 
       return { success: true, userId: newUser.id, hotelId: newHotel.id };
     });
+
+    // Send credentials email - REMOVED per user request (will send after payment)
+    // if (result.success) {
+    //   const { sendCredentialsEmail } = await import("@/lib/mail");
+    //   await sendCredentialsEmail(email, password, `${firstName} ${lastName}`);
+    // }
 
     return result;
 
