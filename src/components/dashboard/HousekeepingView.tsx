@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Sparkles, AlertCircle, CheckCircle, Zap, BedDouble, Filter, Search, Info, ShieldCheck, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -17,7 +17,7 @@ interface HousekeepingViewProps {
     occupiedRooms: any[];
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -27,7 +27,7 @@ const containerVariants = {
     }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
         y: 0,
@@ -253,4 +253,3 @@ function StatusMetric({ label, count, total, color, icon: Icon, subtext }: any) 
         </Card>
     );
 }
-        
