@@ -1,4 +1,5 @@
 
+// Final build trigger for Vercel deployment fix
 import { auth } from "@/auth";
 import { getHotelByUserId } from "@/lib/hotel-helper";
 import { Button } from "@/components/ui/button";
