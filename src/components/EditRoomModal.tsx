@@ -28,12 +28,20 @@ interface EditRoomModalProps {
     number: string;
     type: string;
     price: number;
-  }
+    capacity?: number;
+    image?: string | null;
+  };
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function EditRoomModal({ room }: EditRoomModalProps) {
-  const [open, setOpen] = useState(false);
+export default function EditRoomModal({ room, isOpen, onOpenChange }: EditRoomModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use controlled state if provided, otherwise fallback to internal state
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const setOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen;
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
@@ -50,12 +58,6 @@ export default function EditRoomModal({ room }: EditRoomModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <div className="relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-all hover:bg-white/10 w-full group">
-          <Pencil className="h-4 w-4 text-[#a1f554] mr-3" />
-          <span className="font-medium text-white text-sm">Edit Room</span>
-        </div>
-      </DialogTrigger>
 
       <DialogContent className="sm:max-w-xl p-0 bg-[#0f110d] border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh]">
         <button
@@ -74,7 +76,7 @@ export default function EditRoomModal({ room }: EditRoomModalProps) {
           {/* Header */}
           <div className="bg-gradient-to-br from-black to-[#0f110d] p-6 md:p-8 relative overflow-hidden border-b border-white/5">
             <div className="absolute top-0 right-0 w-48 h-48 bg-[#a1f554] rounded-full blur-[120px] opacity-10" />
-            
+
             <div className="relative z-10 flex items-center gap-4">
               <div className="h-14 w-14 bg-[#a1f554]/10 rounded-2xl flex items-center justify-center text-[#a1f554] border border-[#a1f554]/20">
                 <Pencil className="h-7 w-7" />
