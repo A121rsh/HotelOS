@@ -62,6 +62,8 @@ enum Role {
   ADMIN   // Super Admin (SaaS Owner)
   OWNER   // Hotel Owner
   MANAGER // Hotel Staff
+  FRONT_DESK
+  HOUSEKEEPING
 }
 
 // =======================
