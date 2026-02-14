@@ -39,7 +39,12 @@ export function EditPlanForm({ plan }: { plan: Plan }) {
                 <CardTitle>Edit Subscription Plan</CardTitle>
             </CardHeader>
             <CardContent>
-                <form action={updatePlanWithId} className="space-y-4">
+                <form
+                    action={async (formData) => {
+                        await updatePlanWithId(formData);
+                    }}
+                    className="space-y-4"
+                >
                     <div className="space-y-2">
                         <Label>Plan Name</Label>
                         <Input name="name" defaultValue={plan.name} required />

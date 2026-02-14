@@ -36,7 +36,12 @@ export default function NewPlanPage() {
                     <CardTitle>Create Subscription Plan</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form action={createPlan} className="space-y-4">
+                    <form
+                        action={async (formData) => {
+                            await createPlan(formData);
+                        }}
+                        className="space-y-4"
+                    >
                         <div className="space-y-2">
                             <Label>Plan Name</Label>
                             <Input name="name" placeholder="e.g. Enterprise" required />
