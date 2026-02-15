@@ -38,10 +38,15 @@ export default function LoginPage() {
       const res = await doLogin(formData);
       if (res?.error) {
         setError(res.error);
+        setIsLoading(false);
+      } else if (res?.success && res.destination) {
+        // ✅ Explicitly redirect on client side
+        router.push(res.destination);
+        // We don't set isLoading(false) here to keep the loader until page changes
       }
     } catch (err) {
+      console.error("Login Submission Error:", err);
       setError("An unexpected error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   }

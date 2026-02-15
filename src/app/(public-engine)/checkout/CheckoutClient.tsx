@@ -66,7 +66,7 @@ export default function CheckoutClient() {
                 if (activateRes.success) {
                     setIsSuccess(true);
                     setTimeout(() => {
-                        router.push("/login?onboarding=true");
+                        router.push("/login");
                     }, 2000);
                 } else {
                     setError(activateRes.error!);
@@ -120,7 +120,7 @@ export default function CheckoutClient() {
                     setIsSuccess(true);
                     toast.success("Payment successful! Welcome to the elite.");
                     setTimeout(() => {
-                        router.push("/login?onboarding=true");
+                        router.push("/login");
                     }, 2500);
                 } else {
                     setError(verifyRes.error!);
