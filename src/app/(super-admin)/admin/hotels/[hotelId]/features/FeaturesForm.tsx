@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
     LayoutGrid,
     BookOpen,
-    Box,
+    DoorOpen,
     Users,
     Sparkles,
     ListTodo,
@@ -20,22 +20,22 @@ import {
     CreditCard,
     Loader2,
     Save,
-    RotateCcw,
-    Globe
+    X,
+    CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ALL_FEATURES = [
-    { id: "DASHBOARD", label: "Dashboard Overview", icon: LayoutGrid, desc: "Primary performance intelligence layer" },
-    { id: "BOOKINGS", label: "Bookings Management", icon: BookOpen, desc: "Guest reservation and stay lifecycle" },
-    { id: "ROOMS", label: "Room & Inventory", icon: Box, desc: "Property unit and housekeeping records" },
-    { id: "GUESTS", label: "Guest Database", icon: Users, desc: "CRM-inspired visitor identity tracking" },
-    { id: "HOUSEKEEPING", label: "Housekeeping Module", icon: Sparkles, desc: "Environmental maintenance coordination" },
-    { id: "TASKS", label: "Task Management", icon: ListTodo, desc: "Boutique operational queue" },
-    { id: "CHANNELS", label: "Channel Manager", icon: Globe, desc: "Global OTA distribution and inventory sync" },
-    { id: "STAFF", label: "Staff Management", icon: ShieldCheck, desc: "Human resource governance" },
-    { id: "SETTINGS", label: "Hotel Settings", icon: Settings, desc: "Property configuration engine" },
-    { id: "PRICING", label: "Subscription & Plans", icon: CreditCard, desc: "Fiscal architecture and billing" },
+    { id: "DASHBOARD", label: "Dashboard", icon: LayoutGrid },
+    { id: "BOOKINGS", label: "Bookings", icon: BookOpen },
+    { id: "ROOMS", label: "Rooms", icon: DoorOpen },
+    { id: "GUESTS", label: "Guests", icon: Users },
+    { id: "HOUSEKEEPING", label: "Housekeeping", icon: Sparkles },
+    { id: "TASKS", label: "Tasks", icon: ListTodo },
+    { id: "CHANNELS", label: "Channels", icon: Settings },
+    { id: "STAFF", label: "Staff", icon: ShieldCheck },
+    { id: "SETTINGS", label: "Settings", icon: Settings },
+    { id: "PRICING", label: "Pricing", icon: CreditCard },
 ];
 
 export function FeaturesForm({ hotelId, initialBlocked }: { hotelId: string, initialBlocked: string[] }) {
@@ -55,7 +55,7 @@ export function FeaturesForm({ hotelId, initialBlocked }: { hotelId: string, ini
         setLoading(true);
         const res = await updateHotelFeatures(hotelId, blocked);
         if (res.success) {
-            toast.success("Hotel features updated successfully");
+            toast.success("Features updated successfully");
             router.refresh();
         } else {
             toast.error(res.error || "Failed to update features");
@@ -64,20 +64,21 @@ export function FeaturesForm({ hotelId, initialBlocked }: { hotelId: string, ini
     };
 
     return (
-        <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden">
-            <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-4 mb-2">
-                    <div className="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-900">
-                        <Settings className="h-5 w-5" />
+        <Card className="bg-[#0f110d] border-white/10 rounded-2xl shadow-xl overflow-hidden">
+            <CardHeader className="p-6 md:p-8 border-b border-white/10">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 bg-[#a1f554]/10 rounded-xl flex items-center justify-center border border-[#a1f554]/20">
+                        <Settings className="h-5 w-5 text-[#a1f554]" />
                     </div>
-                    <CardTitle className="text-2xl font-black font-outfit text-slate-900 tracking-tight">Access Restrictions</CardTitle>
+                    <CardTitle className="text-xl font-bold text-white">Feature Access</CardTitle>
                 </div>
-                <CardDescription className="text-slate-500 font-medium">
-                    Select the modules you wish to <span className="text-red-600 font-black uppercase tracking-tight">deactivate</span> for this property node.
+                <CardDescription className="text-slate-400 text-sm">
+                    Select features to disable for this hotel
                 </CardDescription>
             </CardHeader>
-            <CardContent className="p-10 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <CardContent className="p-6 md:p-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                     {ALL_FEATURES.map((feature) => {
                         const isBlocked = blocked.includes(feature.id);
                         return (
@@ -85,69 +86,74 @@ export function FeaturesForm({ hotelId, initialBlocked }: { hotelId: string, ini
                                 key={feature.id}
                                 onClick={() => toggleFeature(feature.id)}
                                 className={cn(
-                                    "relative flex items-center gap-4 p-6 rounded-[2rem] border transition-all duration-300 cursor-pointer group",
+                                    "relative flex flex-col items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer group",
                                     isBlocked
-                                        ? "bg-red-50 border-red-100 shadow-inner"
-                                        : "bg-slate-50 border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50"
+                                        ? "bg-red-500/10 border-red-500/20"
+                                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-[#a1f554]/30"
                                 )}
                             >
                                 <div className={cn(
-                                    "h-12 w-12 rounded-[1.2rem] flex items-center justify-center transition-all duration-500",
+                                    "h-12 w-12 rounded-xl flex items-center justify-center transition-all",
                                     isBlocked
-                                        ? "bg-white text-red-500 shadow-sm"
-                                        : "bg-white text-slate-400 group-hover:text-blue-600 shadow-sm"
+                                        ? "bg-red-500/20 text-red-400"
+                                        : "bg-white/10 text-slate-400 group-hover:text-[#a1f554]"
                                 )}>
                                     <feature.icon className="h-6 w-6" />
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                
+                                <div className="text-center w-full">
                                     <p className={cn(
-                                        "text-[10px] font-black uppercase tracking-widest leading-none",
-                                        isBlocked ? "text-red-700" : "text-slate-900"
-                                    )}>{feature.label}</p>
-                                    <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight truncate">{feature.desc}</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <Checkbox
-                                        id={feature.id}
-                                        checked={isBlocked}
-                                        onCheckedChange={() => toggleFeature(feature.id)}
-                                        className={cn(
-                                            "h-6 w-6 rounded-lg border-2 transition-all",
-                                            isBlocked ? "bg-red-600 border-red-600 text-white" : "border-slate-200"
-                                        )}
-                                    />
+                                        "text-xs font-semibold truncate",
+                                        isBlocked ? "text-red-400" : "text-white"
+                                    )}>
+                                        {feature.label}
+                                    </p>
                                 </div>
 
+                                <Checkbox
+                                    id={feature.id}
+                                    checked={isBlocked}
+                                    onCheckedChange={() => toggleFeature(feature.id)}
+                                    className={cn(
+                                        "h-5 w-5 rounded-md border-2 transition-all",
+                                        isBlocked ? "bg-red-500 border-red-500 text-white" : "border-white/20"
+                                    )}
+                                />
+
                                 {isBlocked && (
-                                    <div className="absolute top-3 right-3">
-                                        <Badge className="bg-red-600 text-white border-none font-black text-[7px] uppercase tracking-widest px-1.5 py-0.5">Restricted</Badge>
-                                    </div>
+                                    <Badge className="absolute top-2 right-2 bg-red-500 text-white border-none text-[10px] px-2 py-0.5">
+                                        Off
+                                    </Badge>
                                 )}
                             </div>
                         );
                     })}
                 </div>
             </CardContent>
-            <CardFooter className="p-10 pt-0 flex justify-between gap-4">
+
+            <CardFooter className="p-6 md:p-8 pt-0 flex flex-col sm:flex-row justify-between gap-3">
                 <Button
                     variant="outline"
                     onClick={() => router.back()}
-                    className="h-14 px-8 rounded-2xl border-slate-200 hover:bg-slate-50 font-black text-[10px] uppercase tracking-widest transition-all"
+                    className="h-12 px-6 rounded-xl border-white/10 bg-transparent hover:bg-white/5 text-white transition-all"
                 >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Revert
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
                 </Button>
                 <Button
                     onClick={handleSave}
                     disabled={loading}
-                    className="h-14 px-10 bg-slate-900 hover:bg-black text-white rounded-2xl border-none font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-slate-900/20 group"
+                    className="h-12 px-6 bg-[#a1f554] hover:bg-[#8fd445] text-black rounded-xl font-semibold transition-all shadow-lg disabled:opacity-50"
                 >
                     {loading ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Provisioning Access...</>
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                        </>
                     ) : (
                         <>
-                            <Save className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                            Update Governance
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Save Changes
                         </>
                     )}
                 </Button>

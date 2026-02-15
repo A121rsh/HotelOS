@@ -4,14 +4,21 @@ import { AlertTriangle, Zap, ShieldCheck } from "lucide-react";
 
 export async function MaintenanceGuard({ children }: { children: React.ReactNode }) {
     // 1. Fetch Global State (Safety check for missing model)
-    if (!(db as any).systemConfig) return <>{children}</>;
-
-    const config = await (db as any).systemConfig.findUnique({
-        where: { id: "singleton" }
-    });
+    let config = null;
+    try {
+        if ((db as any).systemConfig) {
+            config = await (db as any).systemConfig.findFirst({
+                where: { id: "singleton" }
+            });
+        }
+    } catch (error) {
+        console.error("MaintenanceGuard: Failed to fetch system config", error);
+        return <>{children}</>;
+    }
 
     // 2. If not in maintenance, proceed
     if (!config?.isMaintenanceMode) return <>{children}</>;
+
 
     // 3. Bypass for Admin (So they can turn it off)
     const session = await auth();

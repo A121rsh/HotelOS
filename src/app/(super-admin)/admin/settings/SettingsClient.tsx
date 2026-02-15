@@ -3,10 +3,8 @@
 import { useState } from "react";
 import {
     Zap,
-    ShieldCheck,
     Globe,
     Mail,
-    Server,
     Loader2,
     Save,
     AlertTriangle,
@@ -33,7 +31,7 @@ export function SettingsClient({ initialConfig }: { initialConfig: any }) {
         smtpPass: "",
         isMaintenanceMode: false,
         maintenanceMessage: "",
-        primaryColor: "#2563eb",
+        primaryColor: "#a1f554",
     });
 
     const handleSave = async (e: React.FormEvent) => {
@@ -41,149 +39,205 @@ export function SettingsClient({ initialConfig }: { initialConfig: any }) {
         setLoading(true);
         try {
             const res = await updateSystemConfig(config);
-            if (res.success) toast.success("Authority Protocols synchronized successfully.");
+            if (res.success) toast.success("Settings saved successfully");
             else toast.error(res.error);
         } catch (error) {
-            toast.error("Critical failure during synchronization.");
+            toast.error("Failed to save settings");
         } finally {
             setLoading(false);
         }
     };
 
     const handleMaintenanceToggle = async (checked: boolean) => {
-        const msg = config.maintenanceMessage || "System is undergoing scheduled synchronization.";
+        const msg = config.maintenanceMessage || "System is under maintenance. Please check back soon.";
         setLoading(true);
         try {
             const res = await toggleMaintenanceMode(checked, msg);
             if (res.success) {
                 setConfig({ ...config, isMaintenanceMode: checked });
-                toast.warning(`Global Maintenance Mode: ${checked ? "ACTIVATED" : "DEACTIVATED"}`);
+                toast.warning(`Maintenance mode ${checked ? "enabled" : "disabled"}`);
             } else toast.error(res.error);
         } catch (error) {
-            toast.error("Authority override failed.");
+            toast.error("Failed to toggle maintenance mode");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSave} className="space-y-12 pb-20">
+        <form onSubmit={handleSave} className="space-y-8 pb-20">
 
-            {/* 1. GLOBAL STATE OVERRIDE */}
+            {/* Maintenance Mode */}
             <div className={cn(
-                "p-12 rounded-[3.5rem] border-2 transition-all duration-700 shadow-2xl overflow-hidden relative",
+                "p-6 md:p-8 rounded-2xl border transition-all shadow-xl relative overflow-hidden",
                 config.isMaintenanceMode
-                    ? "bg-rose-50 border-rose-200 shadow-rose-200/50"
-                    : "bg-white border-slate-100 shadow-slate-200/50"
+                    ? "bg-red-500/10 border-red-500/20"
+                    : "bg-[#0f110d] border-white/10"
             )}>
                 {config.isMaintenanceMode && (
-                    <div className="absolute top-0 right-0 p-12 opacity-10 animate-pulse">
-                        <AlertTriangle className="h-40 w-40 text-rose-600" />
+                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <AlertTriangle className="h-32 w-32 text-red-500" />
                     </div>
                 )}
 
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 relative z-10">
-                    <div className="flex items-center gap-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+                    <div className="flex items-center gap-4 md:gap-6">
                         <div className={cn(
-                            "h-20 w-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 shadow-2xl",
-                            config.isMaintenanceMode ? "bg-rose-600 text-white" : "bg-slate-900 text-white"
+                            "h-12 w-12 md:h-14 md:w-14 rounded-xl flex items-center justify-center transition-all shadow-lg border",
+                            config.isMaintenanceMode
+                                ? "bg-red-500/20 border-red-500/30 text-red-500"
+                                : "bg-[#a1f554]/10 border-[#a1f554]/20 text-[#a1f554]"
                         )}>
-                            <Zap className={cn("h-10 w-10", config.isMaintenanceMode && "animate-pulse")} />
+                            <Zap className={cn("h-6 w-6 md:h-7 md:w-7", config.isMaintenanceMode && "animate-pulse")} />
                         </div>
                         <div>
-                            <h2 className="text-4xl font-black font-outfit text-slate-900 tracking-tight leading-none">Global Maintenance Protocol</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-3 italic">Intercepts all node traffic across the grid</p>
+                            <h2 className={cn("text-xl md:text-2xl font-bold", config.isMaintenanceMode ? "text-red-500" : "text-white")}>
+                                {config.isMaintenanceMode ? "Maintenance Active" : "System Status"}
+                            </h2>
+                            <p className="text-xs text-slate-400 mt-1">
+                                {config.isMaintenanceMode ? "Site is in maintenance mode" : "All systems operational"}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6 bg-white p-4 rounded-3xl shadow-xl border border-slate-50">
-                        <span className={cn("font-black text-xs uppercase tracking-widest", config.isMaintenanceMode ? "text-rose-600" : "text-slate-400")}>
-                            {config.isMaintenanceMode ? "LOCKDOWN ACTIVE" : "OPERATIONAL"}
+                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                        <span className={cn("text-xs font-semibold", config.isMaintenanceMode ? "text-red-400" : "text-slate-400")}>
+                            {config.isMaintenanceMode ? "Enabled" : "Disabled"}
                         </span>
                         <Switch
                             checked={config.isMaintenanceMode}
                             onCheckedChange={handleMaintenanceToggle}
                             disabled={loading}
-                            className="data-[state=checked]:bg-rose-600"
+                            className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-slate-700"
                         />
                     </div>
                 </div>
 
                 {config.isMaintenanceMode && (
-                    <div className="mt-10 max-w-2xl">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-3 block">Public Broadcast Message</Label>
+                    <div className="mt-6 relative z-10">
+                        <Label className="text-sm font-semibold text-white mb-2 block">Maintenance Message</Label>
                         <Input
                             value={config.maintenanceMessage}
                             onChange={(e) => setConfig({ ...config, maintenanceMessage: e.target.value })}
-                            className="h-14 rounded-2xl border-rose-200 bg-white/50 focus:bg-white text-rose-950 font-bold"
-                            placeholder="Inform tenants about the sync window..."
+                            className="h-12 rounded-xl border-red-500/20 bg-red-500/5 focus:bg-red-500/10 focus:border-red-500/40 text-white"
+                            placeholder="Enter message to display..."
                         />
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
-                {/* 2. CORE IDENTITY PROTOCOLS */}
-                <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 flex flex-col gap-10">
-                    <div className="flex items-center gap-6">
-                        <div className="h-14 w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100/50">
-                            <Globe className="h-7 w-7" />
+                {/* General Settings */}
+                <div className="bg-[#0f110d] p-6 md:p-8 rounded-2xl shadow-xl border border-white/10">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
+                        <div className="h-10 w-10 bg-[#a1f554]/10 text-[#a1f554] rounded-xl flex items-center justify-center border border-[#a1f554]/20">
+                            <Globe className="h-5 w-5" />
                         </div>
-                        <h3 className="text-2xl font-black font-outfit text-slate-900">Platform Identity</h3>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">General</h3>
+                            <p className="text-xs text-slate-400">Basic site information</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-8">
-                        <SettingField label="Establishment Name" value={config.siteName} onChange={(v: string) => setConfig({ ...config, siteName: v })} placeholder="HotelOS Enterprise" />
-                        <SettingField label="Master Support Email" value={config.supportEmail} onChange={(v: string) => setConfig({ ...config, supportEmail: v })} placeholder="central@hotelos.com" />
-                        <SettingField label="Primary Global Color" value={config.primaryColor} onChange={(v: string) => setConfig({ ...config, primaryColor: v })} type="color" />
+                    <div className="space-y-6">
+                        <SettingField 
+                            label="Site Name" 
+                            value={config.siteName} 
+                            onChange={(v: string) => setConfig({ ...config, siteName: v })} 
+                            placeholder="HotelOS" 
+                        />
+                        <SettingField 
+                            label="Support Email" 
+                            value={config.supportEmail} 
+                            onChange={(v: string) => setConfig({ ...config, supportEmail: v })} 
+                            placeholder="support@example.com" 
+                        />
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-white">Primary Color</Label>
+                            <div className="flex items-center gap-4 bg-white/5 p-3 rounded-xl border border-white/10">
+                                <Input
+                                    type="color"
+                                    value={config.primaryColor}
+                                    onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
+                                    className="h-10 w-20 p-1 bg-transparent border-none cursor-pointer"
+                                />
+                                <span className="text-sm font-mono text-white">{config.primaryColor}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* 3. SMTP TRANSMISSION PROTOCOLS */}
-                <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 flex flex-col gap-10">
-                    <div className="flex items-center gap-6">
-                        <div className="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100/50">
-                            <Mail className="h-7 w-7" />
+                {/* SMTP Settings */}
+                <div className="bg-[#0f110d] p-6 md:p-8 rounded-2xl shadow-xl border border-white/10">
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
+                        <div className="h-10 w-10 bg-[#a1f554]/10 text-[#a1f554] rounded-xl flex items-center justify-center border border-[#a1f554]/20">
+                            <Mail className="h-5 w-5" />
                         </div>
-                        <h3 className="text-2xl font-black font-outfit text-slate-900">Secure SMTP Engine</h3>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">Email (SMTP)</h3>
+                            <p className="text-xs text-slate-400">Email server configuration</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-8">
-                        <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
-                                <SettingField label="SMTP Host Address" value={config.smtpHost} onChange={(v: string) => setConfig({ ...config, smtpHost: v })} placeholder="smtp.resend.com" />
+                                <SettingField 
+                                    label="SMTP Host" 
+                                    value={config.smtpHost} 
+                                    onChange={(v: string) => setConfig({ ...config, smtpHost: v })} 
+                                    placeholder="smtp.example.com" 
+                                />
                             </div>
-                            <SettingField label="Node Port" value={config.smtpPort} onChange={(v: string) => setConfig({ ...config, smtpPort: parseInt(v) })} type="number" />
+                            <SettingField 
+                                label="Port" 
+                                value={config.smtpPort} 
+                                onChange={(v: string) => setConfig({ ...config, smtpPort: parseInt(v) || 587 })} 
+                                type="number" 
+                            />
                         </div>
-                        <SettingField label="Identity (Username)" value={config.smtpUser} onChange={(v: string) => setConfig({ ...config, smtpUser: v })} placeholder="resend@node.smtp" />
+                        <SettingField 
+                            label="Username" 
+                            value={config.smtpUser} 
+                            onChange={(v: string) => setConfig({ ...config, smtpUser: v })} 
+                            placeholder="user@example.com" 
+                        />
                         <div className="relative">
-                            <SettingField label="Access Cipher (Password)" value={config.smtpPass} onChange={(v: string) => setConfig({ ...config, smtpPass: v })} type={showPass ? "text" : "password"} />
+                            <SettingField 
+                                label="Password" 
+                                value={config.smtpPass} 
+                                onChange={(v: string) => setConfig({ ...config, smtpPass: v })} 
+                                type={showPass ? "text" : "password"} 
+                            />
                             <button
                                 type="button"
                                 onClick={() => setShowPass(!showPass)}
-                                className="absolute right-6 top-12 text-slate-300 hover:text-slate-900 transition-colors"
+                                className="absolute right-4 top-11 text-slate-400 hover:text-[#a1f554] transition-colors"
                             >
-                                {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* SAVE COMMAND */}
-            <div className="flex justify-end pt-10">
+            {/* Save Button */}
+            <div className="flex justify-end pt-6">
                 <Button
                     type="submit"
                     disabled={loading}
-                    className="h-20 px-16 rounded-[2rem] bg-slate-900 hover:bg-black text-white font-black text-sm uppercase tracking-[0.4em] shadow-2xl shadow-slate-900/30 transition-all active:scale-95 group"
+                    className="h-12 px-8 rounded-xl bg-[#a1f554] hover:bg-[#8fd445] text-black font-semibold transition-all shadow-lg"
                 >
                     {loading ? (
-                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                        </>
                     ) : (
                         <>
-                            Synchronize Authority Overrides
-                            <Save className="ml-4 h-5 w-5 group-hover:scale-110 transition-transform" />
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Settings
                         </>
                     )}
                 </Button>
@@ -202,14 +256,14 @@ interface SettingFieldProps {
 
 function SettingField({ label, value, onChange, placeholder, type = "text" }: SettingFieldProps) {
     return (
-        <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">{label}</Label>
+        <div className="space-y-2">
+            <Label className="text-sm font-semibold text-white">{label}</Label>
             <Input
                 type={type}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white focus:ring-blue-500 font-bold text-slate-900 transition-all px-6"
+                className="h-12 rounded-xl border-white/10 bg-white/5 focus:bg-white/10 focus:border-[#a1f554]/50 focus:ring-1 focus:ring-[#a1f554]/30 text-white"
             />
         </div>
     );

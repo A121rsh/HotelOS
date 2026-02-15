@@ -18,17 +18,17 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="flex min-h-screen bg-slate-50 font-inter">
+        <div className="flex min-h-screen bg-[#050505] font-inter selection:bg-[#a1f554]/30 selection:text-white">
             {/* HIGH-AUTHORITY SIDEBAR (Responsive) */}
             <SuperAdminSidebar email={session.user.email as string} />
 
             {/* MAIN INTELLIGENCE CANVAS */}
             <main className="flex-1 min-h-screen relative overflow-hidden pt-16 lg:pt-0">
-                {/* Architect Background */}
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-50/40 rounded-full blur-[120px] -z-10 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-slate-100/30 rounded-full blur-[100px] -z-10 pointer-events-none" />
+                {/* Ambient Grid Glows */}
+                <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-[#a1f554]/5 rounded-full blur-[180px] -z-10 pointer-events-none -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-white/[0.02] rounded-full blur-[150px] -z-10 pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
-                <div className="p-6 md:p-10 lg:p-14">
+                <div className="p-4 md:p-8 lg:p-12 xl:p-16">
                     {children}
                 </div>
             </main>
