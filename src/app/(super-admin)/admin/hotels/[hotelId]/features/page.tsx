@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-export default async function HotelFeaturesPage({ params }: { params: { hotelId: string } }) {
+export default async function HotelFeaturesPage({ params }: { params: Promise<{ hotelId: string }> }) {
     const { hotelId } = await params;
 
     const hotel = await db.hotel.findUnique({

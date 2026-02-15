@@ -135,7 +135,7 @@ export default function SuperAdminSidebar({ email }: SuperAdminSidebarProps) {
                         </div>
                     </div>
                     <button
-                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        onClick={() => signOut({ callbackUrl: "/" })}
                         className="h-10 w-10 flex items-center justify-center text-emerald-200 hover:text-red-400 transition-colors"
                     >
                         <LogOut className="h-5 w-5" />
