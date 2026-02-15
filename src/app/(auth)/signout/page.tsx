@@ -59,7 +59,10 @@ export default function SignOutPage() {
 
                         <div className="space-y-4 w-full">
                             <Button
-                                onClick={() => signOut({ callbackUrl: "/" })}
+                                onClick={async () => {
+                                    await signOut({ redirect: false });
+                                    window.location.href = "/";
+                                }}
                                 className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-red-900/20 active:scale-[0.98] transition-all"
                             >
                                 Terminate Session
